@@ -1,22 +1,21 @@
-require File.expand_path '../helper', __FILE__
+require File.expand_path "../helper", __FILE__
 
 class ParamsCleanerTest < Test::Unit::TestCase
-
   def clean(opts = {})
-    cleaner = Airbrake::Utils::ParamsCleaner.new(:blacklist_filters  => opts.delete(:params_filters) || [],
-                                                 :whitelist_filters  => opts.delete(:whitelist_params_filters) || [],
-                                                 :to_clean => opts)
+    cleaner = Airbrake::Utils::ParamsCleaner.new(blacklist_filters: opts.delete(:params_filters) || [],
+                                                 whitelist_filters: opts.delete(:whitelist_params_filters) || [],
+                                                 to_clean: opts)
     cleaner.clean
   end
 
   def assert_serializes_hash(attribute)
-    [File.open(__FILE__), Proc.new { puts "boo!" }, Module.new, nil].each do |object|
+    [File.open(__FILE__), proc { puts "boo!" }, Module.new, nil].each do |object|
       hash = {
-        :strange_object => object,
-        :sub_hash => {
-          :sub_object => object
+        strange_object: object,
+        sub_hash: {
+          sub_object: object
         },
-        :array => [object]
+        array: [object]
       }
       clean_params = clean(attribute => hash)
       hash = clean_params.send(attribute)
@@ -30,22 +29,22 @@ class ParamsCleanerTest < Test::Unit::TestCase
   end
 
   def assert_filters_hash(attribute)
-    filters  = ['abc', :def]
+    filters  = ["abc", :def]
     original = {
-      'abc' => '123',
-      'def' => '456',
-      'ghi' => '789',
-      'something_with_abc' => 'match the entire string',
-      'nested_hash' => { 'abc' => '100', 'ghi' => '789' },
-      'nested_array' => [{ 'abc' => '100' }, { 'ghi' => '789' }, 'xyz']
+      "abc" => "123",
+      "def" => "456",
+      "ghi" => "789",
+      "something_with_abc" => "match the entire string",
+      "nested_hash" => { "abc" => "100", "ghi" => "789" },
+      "nested_array" => [{ "abc" => "100" }, { "ghi" => "789" }, "xyz"]
     }
     filtered = {
-      'abc' => '[FILTERED]',
-      'def' => '[FILTERED]',
-      'ghi' => '789',
-      'something_with_abc' => 'match the entire string',
-      'nested_hash' => { 'abc' => '[FILTERED]', 'ghi' => '789' },
-      'nested_array' => [{ 'abc' => '[FILTERED]' }, { 'ghi' => '789' }, 'xyz']
+      "abc" => "[FILTERED]",
+      "def" => "[FILTERED]",
+      "ghi" => "789",
+      "something_with_abc" => "match the entire string",
+      "nested_hash" => { "abc" => "[FILTERED]", "ghi" => "789" },
+      "nested_array" => [{ "abc" => "[FILTERED]" }, { "ghi" => "789" }, "xyz"]
     }
 
     clean_params = clean(:params_filters => filters, attribute => original)
@@ -58,8 +57,8 @@ class ParamsCleanerTest < Test::Unit::TestCase
       "action_dispatch.secret_token" => "abc123xyz456",
       "abc" => "123"
     }
-    clean_params = clean(:cgi_data => original)
-    assert_equal({"abc" => "123"}, clean_params.cgi_data)
+    clean_params = clean(cgi_data: original)
+    assert_equal({ "abc" => "123" }, clean_params.cgi_data)
   end
 
   should "remove sensitive rack vars" do
@@ -85,8 +84,8 @@ class ParamsCleanerTest < Test::Unit::TestCase
       "abc" => "123"
     }
 
-    clean_params = clean(:cgi_data => original)
-    assert_equal({"abc" => "123"}, clean_params.cgi_data)
+    clean_params = clean(cgi_data: original)
+    assert_equal({ "abc" => "123" }, clean_params.cgi_data)
   end
 
   should "remove secrets from cgi_data" do
@@ -96,17 +95,17 @@ class ParamsCleanerTest < Test::Unit::TestCase
       "abc" => "123"
     }
 
-    clean_params = clean(:cgi_data => original)
-    assert_equal({"abc" => "123"}, clean_params.cgi_data)
+    clean_params = clean(cgi_data: original)
+    assert_equal({ "abc" => "123" }, clean_params.cgi_data)
   end
 
   should "handle frozen objects" do
     params = {
-      'filter_me' => ['a', 'b', 'c', 'd'].freeze
+      "filter_me" => %w(a b c d).freeze
     }
 
-    clean_params = clean({:params_filters => ['filter_me'], :parameters => params})
-    assert_equal({'filter_me' => '[FILTERED]'}, clean_params.parameters)
+    clean_params = clean({ params_filters: ["filter_me"], parameters: params })
+    assert_equal({ "filter_me" => "[FILTERED]" }, clean_params.parameters)
   end
 
   should "filter parameters" do
@@ -115,16 +114,16 @@ class ParamsCleanerTest < Test::Unit::TestCase
 
   should "whitelist filter parameters" do
     whitelist_filters  = ["abc", :def]
-    original = { 'abc' => "123", 'def' => "456", 'ghi' => "789", 'nested' => { 'abc' => '100' },
-      'something_with_abc' => 'match the entire string'}
-    filtered = { 'abc'    => "123",
-      'def'    => "456",
-      'something_with_abc' => "[FILTERED]",
-      'ghi'    => "[FILTERED]",
-      'nested' => "[FILTERED]" }
+    original = { "abc" => "123", "def" => "456", "ghi" => "789", "nested" => { "abc" => "100" },
+                 "something_with_abc" => "match the entire string" }
+    filtered = { "abc"    => "123",
+                 "def"    => "456",
+                 "something_with_abc" => "[FILTERED]",
+                 "ghi"    => "[FILTERED]",
+                 "nested" => "[FILTERED]" }
 
-    clean_params = clean(:whitelist_params_filters => whitelist_filters,
-                         :parameters => original)
+    clean_params = clean(whitelist_params_filters: whitelist_filters,
+                         parameters: original)
 
     assert_equal(filtered,
                  clean_params.send(:parameters))
@@ -132,39 +131,39 @@ class ParamsCleanerTest < Test::Unit::TestCase
 
   should "not filter everything if whitelist filters are empty" do
     whitelist_filters  = []
-    original = { 'abc' => '123' }
-    clean_params = clean(:whitelist_params_filters => whitelist_filters,
-                         :parameters => original)
+    original = { "abc" => "123" }
+    clean_params = clean(whitelist_params_filters: whitelist_filters,
+                         parameters: original)
     assert_equal(original, clean_params.send(:parameters))
   end
 
   should "not care if filters are defined in nested array" do
     filters  = [[/crazy/, :foo, ["bar", ["too"]]]]
     original = {
-      'this_is_crazy' => 'yes_it_is',
-      'I_am_good' => 'yes_you_are',
-      'foo' => '1212',
-      'too' => '2121',
-      'bar' => 'secret'
+      "this_is_crazy" => "yes_it_is",
+      "I_am_good" => "yes_you_are",
+      "foo" => "1212",
+      "too" => "2121",
+      "bar" => "secret"
     }
     filtered = {
-      'this_is_crazy' => '[FILTERED]',
-      'I_am_good' => 'yes_you_are',
-      'foo' => '[FILTERED]',
-      'too' => '[FILTERED]',
-      'bar' => '[FILTERED]'
+      "this_is_crazy" => "[FILTERED]",
+      "I_am_good" => "yes_you_are",
+      "foo" => "[FILTERED]",
+      "too" => "[FILTERED]",
+      "bar" => "[FILTERED]"
     }
-    clean_params = clean(:params_filters => filters,
-                         :parameters => original)
+    clean_params = clean(params_filters: filters,
+                         parameters: original)
     assert_equal(filtered, clean_params.send(:parameters))
   end
 
   should "filter key if it is defined as blacklist and whitelist" do
-    original = { 'filter_me' => 'secret' }
-    filtered = { 'filter_me' => '[FILTERED]' }
-    clean_params = clean(:params_filters => [:filter_me],
-                         :params_whitelist_filters => [:filter_me],
-                         :parameters => original)
+    original = { "filter_me" => "secret" }
+    filtered = { "filter_me" => "[FILTERED]" }
+    clean_params = clean(params_filters: [:filter_me],
+                         params_whitelist_filters: [:filter_me],
+                         parameters: original)
     assert_equal(filtered, clean_params.send(:parameters))
   end
 
@@ -184,21 +183,20 @@ class ParamsCleanerTest < Test::Unit::TestCase
 
   should "handle closed IO objects by converting them to strings" do
     params = {
-      :files => [Tempfile.new('a').tap(&:close), IO.new(0).tap(&:close)]
+      files: [Tempfile.new("a").tap(&:close), IO.new(0).tap(&:close)]
     }
-    clean_params = clean(:params_filters => ['files'], :parameters => params)
+    clean_params = clean(params_filters: ["files"], parameters: params)
     assert_match(/\A#<(Temp)?[Ff]ile:0x.+>\z/, clean_params.parameters[:files][0])
     assert_match(/\A#<IO:0x.+>\z/, clean_params.parameters[:files][1])
   end
 
   should "not break on filtering multi-dimensional array as possible in action_dispatch.cookies" do
-    original = { 'cgi_cookies_to_filter' => [['any_cookie_key', 'some_cookie_value'], ['secret', 'some_secret_value']] }
-    clean_params = clean(:params_filters => [:secret],
-                         :params_whitelist_filters => [:secret],
-                         :parameters => original)
+    original = { "cgi_cookies_to_filter" => [%w(any_cookie_key some_cookie_value), %w(secret some_secret_value)] }
+    clean_params = clean(params_filters: [:secret],
+                         params_whitelist_filters: [:secret],
+                         parameters: original)
     assert_nothing_raised do
       clean_params.send(:parameters)
     end
   end
-
 end

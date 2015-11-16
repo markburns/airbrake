@@ -1,9 +1,8 @@
-require 'net/http'
-require 'uri'
+require "net/http"
+require "uri"
 
 # Capistrano tasks for notifying Airbrake of deploys
 module AirbrakeTasks
-
   # Alerts Airbrake of a deploy.
   #
   # @param [Hash] opts Data about the deploy that is set to Airbrake
@@ -24,10 +23,10 @@ module AirbrakeTasks
     end
 
     dry_run = opts.delete(:dry_run)
-    params = {'api_key' => Airbrake.configuration.api_key}
-    opts.each {|k,v| params["deploy[#{k}]"] = v }
+    params = { "api_key" => Airbrake.configuration.api_key }
+    opts.each { |k, v| params["deploy[#{k}]"] = v }
 
-    host = Airbrake.configuration.host || 'api.airbrake.io'
+    host = Airbrake.configuration.host || "api.airbrake.io"
     port = Airbrake.configuration.port
 
     proxy = Net::HTTP.Proxy(Airbrake.configuration.proxy_host,
@@ -35,8 +34,6 @@ module AirbrakeTasks
                             Airbrake.configuration.proxy_user,
                             Airbrake.configuration.proxy_pass)
     http = proxy.new(host, port)
-
-
 
     # Handle Security
     if Airbrake.configuration.secure?
@@ -59,4 +56,3 @@ module AirbrakeTasks
     end
   end
 end
-

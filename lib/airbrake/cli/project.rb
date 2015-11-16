@@ -3,7 +3,7 @@ class Project
 
   def initialize(attributes = {})
     attributes.keys.each do |key|
-      instance_variable_set("@#{key}",attributes[key])
+      instance_variable_set("@#{key}", attributes[key])
     end
   end
 

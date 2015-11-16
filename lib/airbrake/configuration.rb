@@ -1,15 +1,14 @@
 module Airbrake
   # Used to set up and modify settings for the notifier.
   class Configuration
-
     OPTIONS = [:api_key, :backtrace_filters, :development_environments,
-        :development_lookup, :environment_name, :host,
-        :http_open_timeout, :http_read_timeout, :ignore, :ignore_by_filters,
-        :ignore_user_agent, :notifier_name, :notifier_url, :notifier_version,
-        :params_filters, :params_whitelist_filters, :project_root, :port, :protocol, :proxy_host,
-        :proxy_pass, :proxy_port, :proxy_user, :secure, :use_system_ssl_cert_chain,
-        :framework, :user_information, :rescue_rake_exceptions, :rake_environment_filters,
-        :test_mode].freeze
+               :development_lookup, :environment_name, :host,
+               :http_open_timeout, :http_read_timeout, :ignore, :ignore_by_filters,
+               :ignore_user_agent, :notifier_name, :notifier_url, :notifier_version,
+               :params_filters, :params_whitelist_filters, :project_root, :port, :protocol, :proxy_host,
+               :proxy_pass, :proxy_port, :proxy_user, :secure, :use_system_ssl_cert_chain,
+               :framework, :user_information, :rescue_rake_exceptions, :rake_environment_filters,
+               :test_mode].freeze
 
     # The API key for your project, found on the project edit form.
     attr_accessor :api_key
@@ -119,7 +118,7 @@ module Airbrake
     attr_accessor :test_mode
     alias_method :test_mode?, :test_mode
 
-    DEFAULT_PARAMS_FILTERS  = %w(password password_confirmation).freeze
+    DEFAULT_PARAMS_FILTERS = %w(password password_confirmation).freeze
     DEFAULT_PARAMS_WHITELIST_FILTERS = [].freeze
 
     DEFAULT_USER_ATTRIBUTES = %w(id).freeze
@@ -128,7 +127,7 @@ module Airbrake
 
     DEFAULT_BACKTRACE_FILTERS = [
       lambda { |line|
-        if defined?(Airbrake.configuration.project_root) && Airbrake.configuration.project_root.to_s != ''
+        if defined?(Airbrake.configuration.project_root) && Airbrake.configuration.project_root.to_s != ""
           line.sub(/#{Airbrake.configuration.project_root}/, "[PROJECT_ROOT]")
         else
           line
@@ -136,29 +135,29 @@ module Airbrake
       },
       lambda { |line| line.gsub(/^\.\//, "") },
       lambda { |line|
-        Gem.path.each{ |path| line.sub!(/#{path}/, "[GEM_ROOT]") unless path.to_s.strip.empty? } if defined?(Gem)
+        Gem.path.each { |path| line.sub!(/#{path}/, "[GEM_ROOT]") unless path.to_s.strip.empty? } if defined?(Gem)
         line
       },
       lambda { |line| line if line !~ %r{lib/airbrake} }
     ].freeze
 
-    IGNORE_DEFAULT = ['ActiveRecord::RecordNotFound',
-                      'ActionController::RoutingError',
-                      'ActionController::InvalidAuthenticityToken',
-                      'CGI::Session::CookieStore::TamperedWithCookie',
-                      'ActionController::UnknownHttpMethod',
-                      'ActionController::UnknownAction',
-                      'AbstractController::ActionNotFound',
-                      'Mongoid::Errors::DocumentNotFound',
-                      'ActionController::UnknownFormat']
+    IGNORE_DEFAULT = ["ActiveRecord::RecordNotFound",
+                      "ActionController::RoutingError",
+                      "ActionController::InvalidAuthenticityToken",
+                      "CGI::Session::CookieStore::TamperedWithCookie",
+                      "ActionController::UnknownHttpMethod",
+                      "ActionController::UnknownAction",
+                      "AbstractController::ActionNotFound",
+                      "Mongoid::Errors::DocumentNotFound",
+                      "ActionController::UnknownFormat"]
 
     alias_method :secure?, :secure
     alias_method :use_system_ssl_cert_chain?, :use_system_ssl_cert_chain
 
     def initialize
-      @secure                   = false
-      @use_system_ssl_cert_chain= false
-      @host                     = 'api.airbrake.io'
+      @secure = false
+      @use_system_ssl_cert_chain = false
+      @host                     = "api.airbrake.io"
       @port                     = nil
       @http_open_timeout        = 2
       @http_read_timeout        = 5
@@ -171,11 +170,11 @@ module Airbrake
       @ignore_user_agent        = []
       @development_environments = %w(development test cucumber)
       @development_lookup       = true
-      @notifier_name            = 'Airbrake Notifier'
+      @notifier_name            = "Airbrake Notifier"
       @notifier_version         = VERSION
-      @notifier_url             = 'https://github.com/airbrake/airbrake'
-      @framework                = 'Standalone'
-      @user_information         = 'Airbrake Error {{error_id}}'
+      @notifier_url             = "https://github.com/airbrake/airbrake"
+      @framework                = "Standalone"
+      @user_information         = "Airbrake Error {{error_id}}"
       @rescue_rake_exceptions   = nil
       @user_attributes          = DEFAULT_USER_ATTRIBUTES.dup
       @rake_environment_filters = []
@@ -194,7 +193,7 @@ module Airbrake
     # @param [Proc] block The new backtrace filter.
     # @yieldparam [String] line A line in the backtrace.
     def filter_backtrace(&block)
-      self.backtrace_filters << block
+      backtrace_filters << block
     end
 
     # Takes a block and adds it to the list of ignore filters.
@@ -208,7 +207,7 @@ module Airbrake
     # @yieldparam [Hash] data The exception data given to +Airbrake.notify+
     # @yieldreturn [Boolean] If the block returns true the exception will be ignored, otherwise it will be processed by airbrake.
     def ignore_by_filter(&block)
-      self.ignore_by_filters << block
+      ignore_by_filters << block
     end
 
     # Overrides the list of default ignored errors.
@@ -242,7 +241,7 @@ module Airbrake
     # Returns a hash of all configurable options
     def to_hash
       OPTIONS.inject({}) do |hash, option|
-        hash[option.to_sym] = self.send(option)
+        hash[option.to_sym] = send(option)
         hash
       end
     end
@@ -275,9 +274,9 @@ module Airbrake
     # configuration, and +"https"+ otherwise.
     def protocol
       if secure?
-        'https'
+        "https"
       else
-        'http'
+        "http"
       end
     end
 
@@ -289,9 +288,7 @@ module Airbrake
     # (boolean, nil or callable; default is nil).
     # Can be used as callable-setter when block provided.
     def async(&block)
-      if block_given?
-        @async = block
-      end
+      @async = block if block_given?
       @async
     end
     alias_method :async?, :async
@@ -304,7 +301,7 @@ module Airbrake
 
     def rescue_rake_exceptions=(val)
       if val && !defined?(Airbrake::RakeHandler)
-        raise LoadError, "you must require 'airbrake/rake_handler' to rescue from rake exceptions"
+        fail LoadError, "you must require 'airbrake/rake_handler' to rescue from rake exceptions"
       end
       @rescue_rake_exceptions = val
     end
@@ -325,7 +322,8 @@ module Airbrake
       @project_id = "#{project_id}"
     end
 
-  private
+    private
+
     # Determines what port should we use for sending notices.
     # @return [Fixnum] Returns 443 if you've set secure to true in your
     # configuration, and 80 otherwise.
@@ -340,12 +338,12 @@ module Airbrake
     # Async notice delivery defaults to girl friday
     def default_async_processor
       if defined?(SuckerPunch)
-        lambda {|notice| SendJob.new.async.perform(notice)}
+        lambda { |notice| SendJob.new.async.perform(notice) }
       elsif defined?(GirlFriday)
-        queue = GirlFriday::WorkQueue.new(nil, :size => 3) do |notice|
+        queue = GirlFriday::WorkQueue.new(nil, size: 3) do |notice|
           Airbrake.sender.send_to_airbrake(notice)
         end
-        lambda {|notice| queue << notice}
+        lambda { |notice| queue << notice }
       else
         warn "[AIRBRAKE] You can't use the default async handler without sucker_punch or girl_friday."\
         " Please make sure you have sucker_punch or girl_friday installed (sucker_punch is recommended)."
@@ -354,12 +352,11 @@ module Airbrake
 
     def validate_user_attributes(user_attributes)
       user_attributes.reject do |attribute|
-        unless VALID_USER_ATTRIBUTES.include? attribute.to_s
-          warn "[AIRBRAKE] Unsupported user attribute: '#{attribute}'. "\
-            "This attribute will not be shown in the Airbrake UI. "\
-            "Check http://git.io/h6YRpA for more info."
-          true
-        end
+        next if VALID_USER_ATTRIBUTES.include? attribute.to_s
+        warn "[AIRBRAKE] Unsupported user attribute: '#{attribute}'. "\
+                    "This attribute will not be shown in the Airbrake UI. "\
+                    "Check http://git.io/h6YRpA for more info."
+        true
       end
     end
   end

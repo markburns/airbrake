@@ -1,9 +1,9 @@
-require File.expand_path '../helper', __FILE__
+require File.expand_path "../helper", __FILE__
 
 class UserInformerTest < Test::Unit::TestCase
   should "modify output if there is an airbrake id" do
     main_app = lambda do |env|
-      env['airbrake.error_id'] = 1
+      env["airbrake.error_id"] = 1
       [200, {}, ["<!-- AIRBRAKE ERROR -->"]]
     end
     informer_app = Airbrake::UserInformer.new(main_app)
@@ -16,7 +16,7 @@ class UserInformerTest < Test::Unit::TestCase
   end
 
   should "not modify output if there is no airbrake id" do
-    main_app = lambda do |env|
+    main_app = lambda do |_env|
       [200, {}, ["<!-- AIRBRAKE ERROR -->"]]
     end
     informer_app = Airbrake::UserInformer.new(main_app)

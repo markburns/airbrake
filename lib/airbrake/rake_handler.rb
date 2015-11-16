@@ -2,7 +2,7 @@
 module Airbrake::RakeHandler
   def self.included(klass)
     klass.class_eval do
-      include Rake087Methods unless defined?(Rake::VERSION) && Rake::VERSION >= '0.9.0'
+      include Rake087Methods unless defined?(Rake::VERSION) && Rake::VERSION >= "0.9.0"
       alias_method :display_error_message_without_airbrake, :display_error_message
       alias_method :display_error_message, :display_error_message_with_airbrake
     end
@@ -10,21 +10,21 @@ module Airbrake::RakeHandler
 
   def display_error_message_with_airbrake(exception)
     if Airbrake.sender && Airbrake.configuration &&
-        (Airbrake.configuration.rescue_rake_exceptions ||
-          (Airbrake.configuration.rescue_rake_exceptions===nil && !self.tty_output?))
+       (Airbrake.configuration.rescue_rake_exceptions ||
+         (Airbrake.configuration.rescue_rake_exceptions.nil? && !self.tty_output?))
 
       Airbrake.notify_or_ignore(exception,
-                                :component => 'rake',
-                                :action    => reconstruct_command_line,
-                                :cgi_data  => environment_info,
-                                :ignore    => Airbrake.configuration.ignore_rake)
+                                component: "rake",
+                                action: reconstruct_command_line,
+                                cgi_data: environment_info,
+                                ignore: Airbrake.configuration.ignore_rake)
     end
 
     display_error_message_without_airbrake(exception)
   end
 
   def reconstruct_command_line
-    ARGV.join(' ')
+    ARGV.join(" ")
   end
 
   def environment_info
@@ -39,19 +39,17 @@ module Airbrake::RakeHandler
     #
     # Provide standard exception handling for the given block.
     def standard_exception_handling
-      begin
-        yield
-      rescue SystemExit => ex
-        # Exit silently with current status
-        raise
-      rescue OptionParser::InvalidOption => ex
-        $stderr.puts ex.message
-        exit(false)
-      rescue Exception => ex
-        # Exit with error message
-        display_error_message(ex)
-        exit(false)
-      end
+      yield
+    rescue SystemExit => ex
+      # Exit silently with current status
+      raise
+    rescue OptionParser::InvalidOption => ex
+      $stderr.puts ex.message
+      exit(false)
+    rescue Exception => ex
+      # Exit with error message
+      display_error_message(ex)
+      exit(false)
     end
 
     # Method extracted from Rake 0.8.7 source
@@ -61,7 +59,7 @@ module Airbrake::RakeHandler
       if options.trace
         $stderr.puts ex.backtrace.join("\n")
       else
-        $stderr.puts ex.backtrace.find {|str| str =~ /#{@rakefile}/ } || ""
+        $stderr.puts ex.backtrace.find { |str| str =~ /#{@rakefile}/ } || ""
         $stderr.puts "(See full trace by running task with --trace)"
       end
     end

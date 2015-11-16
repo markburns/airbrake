@@ -1,10 +1,10 @@
 BUNDLE_ENV_VARS = %w(RUBYOPT BUNDLE_PATH BUNDLE_BIN_PATH BUNDLE_GEMFILE)
-ORIGINAL_BUNDLE_VARS = Hash[ENV.select{ |key,value| BUNDLE_ENV_VARS.include?(key) }]
+ORIGINAL_BUNDLE_VARS = Hash[ENV.select { |key, _value| BUNDLE_ENV_VARS.include?(key) }]
 
-ENV['RAILS_ENV'] = 'test'
+ENV["RAILS_ENV"] = "test"
 
 Before do
-  ENV['BUNDLE_GEMFILE'] = File.join(Dir.pwd, ENV['BUNDLE_GEMFILE']) unless ENV['BUNDLE_GEMFILE'].start_with?(Dir.pwd)
+  ENV["BUNDLE_GEMFILE"] = File.join(Dir.pwd, ENV["BUNDLE_GEMFILE"]) unless ENV["BUNDLE_GEMFILE"].start_with?(Dir.pwd)
   @framework_version = nil
 end
 
@@ -17,11 +17,11 @@ end
 
 module RailsHelpers
   def rails_root_exists?
-    File.exists?(environment_path)
+    File.exist?(environment_path)
   end
 
   def application_controller_filename
-    controller_filename = File.join(rails_root, 'app', 'controllers', "application_controller.rb")
+    controller_filename = File.join(rails_root, "app", "controllers", "application_controller.rb")
   end
 
   def rails_3_or_4?
@@ -43,18 +43,18 @@ module RailsHelpers
       elsif bundler_manages_gems?
         rails_version = open(gemfile_path).read.match(/gem.*rails["'].*["'](.+)["']/)[1]
       else
-        environment_file = File.join(rails_root, 'config', 'environment.rb')
+        environment_file = File.join(rails_root, "config", "environment.rb")
         rails_version = `grep RAILS_GEM_VERSION #{environment_file}`.match(/[\d.]+/)[0]
       end
     end
   end
 
   def bundler_manages_gems?
-    File.exists?(gemfile_path)
+    File.exist?(gemfile_path)
   end
 
   def gemfile_path
-    gemfile = File.join(rails_root, 'Gemfile')
+    gemfile = File.join(rails_root, "Gemfile")
   end
 
   def rails_manages_gems?
@@ -70,15 +70,15 @@ module RailsHelpers
   end
 
   def version_string
-    ENV['RAILS_VERSION'] || `tail -n 1 SUPPORTED_RAILS_VERSIONS` # use latest version if ENV["RAILS_VERSION"] is undefined
+    ENV["RAILS_VERSION"] || `tail -n 1 SUPPORTED_RAILS_VERSIONS` # use latest version if ENV["RAILS_VERSION"] is undefined
   end
 
   def environment_path
-    File.join(rails_root, 'config', 'environment.rb')
+    File.join(rails_root, "config", "environment.rb")
   end
 
   def rakefile_path
-    File.join(rails_root, 'Rakefile')
+    File.join(rails_root, "Rakefile")
   end
 
   def config_gem(gem_name, version = nil)
@@ -88,9 +88,9 @@ module RailsHelpers
     content = File.read(environment_path)
     content = "require 'thread'\n#{content}"
     if content.sub!(run, "#{run}\n#{insert}")
-      File.open(environment_path, 'wb') { |file| file.write(content) }
+      File.open(environment_path, "wb") { |file| file.write(content) }
     else
-      raise "Couldn't find #{run.inspect} in #{environment_path}"
+      fail "Couldn't find #{run.inspect} in #{environment_path}"
     end
   end
 
@@ -110,19 +110,19 @@ module RailsHelpers
     run     = "Rails::Initializer.run do |config|"
     content = File.read(environment_path)
     if content.sub!(run, "#{insert}\n#{run}")
-      File.open(environment_path, 'wb') { |file| file.write(content) }
+      File.open(environment_path, "wb") { |file| file.write(content) }
     else
-      raise "Couldn't find #{run.inspect} in #{environment_path}"
+      fail "Couldn't find #{run.inspect} in #{environment_path}"
     end
   end
 
   def require_thread
     content = File.read(rakefile_path)
     content = "require 'thread'\n#{content}"
-    File.open(rakefile_path, 'wb') { |file| file.write(content) }
+    File.open(rakefile_path, "wb") { |file| file.write(content) }
   end
 
-  def perform_request(uri, environment = 'production')
+  def perform_request(uri, _environment = "production")
     request_script = <<-SCRIPT
 require File.expand_path('../config/environment', __FILE__)
 
@@ -148,9 +148,8 @@ else
   puts response.body
 end
     SCRIPT
-    File.open(File.join(rails_root, 'request.rb'), 'w') { |file| file.write(request_script) }
+    File.open(File.join(rails_root, "request.rb"), "w") { |file| file.write(request_script) }
   end
-
 end
 
 World(RailsHelpers)

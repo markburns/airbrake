@@ -1,6 +1,6 @@
-require 'uri'
+require "uri"
 
-require 'active_support/core_ext/string/inflections'
+require "active_support/core_ext/string/inflections"
 
 Given /^Airbrake server is not responding$/ do
   content = <<-CONTENT
@@ -9,35 +9,35 @@ Given /^Airbrake server is not responding$/ do
   ShamRack.at("api.airbrake.io") {["500", { "Content-type" => "text/xml" }, ["Internal server error"]]}
 
   CONTENT
-  target = File.join(rails_root, 'config', 'initializers', 'airbrake_shim.rb')
-  File.open(target,"w") { |f| f.write content }
+  target = File.join(rails_root, "config", "initializers", "airbrake_shim.rb")
+  File.open(target, "w") { |f| f.write content }
 end
 
 Then /^I should (?:(not ))?receive a Airbrake notification$/ do |negator|
-  steps %{
+  steps %(
     Then the output should #{negator}contain "** [Airbrake] Response from Airbrake:"
     And the output should #{negator}contain "b6817316-9c45-ed26-45eb-780dbb86aadb"
     And the output should #{negator}contain "http://airbrake.io/locate/b6817316-9c45-ed26-45eb-780dbb86aadb"
-  }
+  )
 end
 
 Then /^I should receive two Airbrake notifications$/ do
-  step %{the output should match /\[Airbrake\] Response from Airbrake:/}
+  step %(the output should match /\[Airbrake\] Response from Airbrake:/)
 end
 
 When /^I configure the Airbrake shim$/ do
-  shim_file = File.join(PROJECT_ROOT, 'features', 'support', 'airbrake_shim.rb.template')
-  target = File.join(rails_root, 'config', 'initializers', 'airbrake_shim.rb')
+  shim_file = File.join(PROJECT_ROOT, "features", "support", "airbrake_shim.rb.template")
+  target = File.join(rails_root, "config", "initializers", "airbrake_shim.rb")
   FileUtils.cp(shim_file, target)
 end
 
 When /^I configure the notifier to use "([^\"]*)" as an API key$/ do |api_key|
-  steps %{
+  steps %(
     When I configure the notifier to use the following configuration lines:
       """
       config.api_key = #{api_key.inspect}
       """
-  }
+  )
 end
 
 When /^I configure the notifier to use the following configuration lines:$/ do |configuration_lines|
@@ -48,19 +48,19 @@ When /^I configure the notifier to use the following configuration lines:$/ do |
     end
   EOF
 
-  File.open(rails_initializer_file, 'w') { |file| file.write(initializer_code) }
+  File.open(rails_initializer_file, "w") { |file| file.write(initializer_code) }
 end
 
 def rails_initializer_file
-  File.join(rails_root, 'config', 'initializers', 'airbrake.rb')
+  File.join(rails_root, "config", "initializers", "airbrake.rb")
 end
 
 def rails_non_initializer_airbrake_config_file
-  File.join(rails_root, 'config', 'airbrake.rb')
+  File.join(rails_root, "config", "airbrake.rb")
 end
 
-Then /^I should (?:(not ))?see "([^\"]*)"$/ do |negator,expected_text|
-  step %{the output should #{negator}contain "#{expected_text}"}
+Then /^I should (?:(not ))?see "([^\"]*)"$/ do |negator, expected_text|
+  step %(the output should #{negator}contain "#{expected_text}")
 end
 
 When /^I install the "([^\"]*)" plugin$/ do |plugin_name|
@@ -70,7 +70,7 @@ end
 When /^I define a response for "([^\"]*)":$/ do |controller_and_action, definition|
   controller_class_name, action = controller_and_action.split('#')
   controller_name = controller_class_name.underscore
-  controller_file_name = File.join(rails_root, 'app', 'controllers', "#{controller_name}.rb")
+  controller_file_name = File.join(rails_root, "app", "controllers", "#{controller_name}.rb")
   File.open(controller_file_name, "w") do |file|
     file.puts "class #{controller_class_name} < ApplicationController"
     file.puts "def consider_all_requests_local; false; end"
@@ -84,12 +84,12 @@ end
 
 When /^I perform a request to "([^\"]*)"$/ do |uri|
   perform_request(uri)
-  step %{I run `bundle exec rails runner request.rb`}
+  step %(I run `bundle exec rails runner request.rb`)
 end
 
 When /^I perform a request to "([^\"]*)" in the "([^\"]*)" environment$/ do |uri, environment|
-  perform_request(uri,environment)
-  step %{I run `bundle exec rails runner -e #{environment} request.rb`}
+  perform_request(uri, environment)
+  step %(I run `bundle exec rails runner -e #{environment} request.rb`)
 end
 
 Given /^the response page for a "([^\"]*)" error is$/ do |error, html|
@@ -99,11 +99,11 @@ Given /^the response page for a "([^\"]*)" error is$/ do |error, html|
 end
 
 Then /^I should see the Rails version$/ do
-  step %{I should see "Rails: #{ENV["RAILS_VERSION"]}"}
+  step %(I should see "Rails: #{ENV['RAILS_VERSION']}")
 end
 
 Then /^I should see that "([^\"]*)" is not considered a framework gem$/ do |gem_name|
-  step %{I should not see "[R] #{gem_name}"}
+  step %(I should not see "[R] #{gem_name}")
 end
 
 When /^I route "([^\"]*)" to "([^\"]*)"$/ do |path, controller_action_pair|
@@ -120,7 +120,7 @@ end
 Then /^"([^\"]*)" should not contain "([^\"]*)"$/ do |file_path, text|
   actual_text = IO.read(File.join(rails_root, file_path))
   if actual_text.include?(text)
-    raise "Didn't expect text:\n#{actual_text}\nTo include:\n#{text}"
+    fail "Didn't expect text:\n#{actual_text}\nTo include:\n#{text}"
   end
 end
 
@@ -128,12 +128,12 @@ Then /^my Airbrake configuration should contain the following line:$/ do |line|
   configuration_file = rails_initializer_file
 
   configuration = File.read(configuration_file)
-  if ! configuration.include?(line.strip)
-    raise "Expected text:\n#{configuration}\nTo include:\n#{line}\nBut it didn't."
+  unless configuration.include?(line.strip)
+    fail "Expected text:\n#{configuration}\nTo include:\n#{line}\nBut it didn't."
   end
 end
 
-When /^I configure the Heroku shim with "([^\"]*)"( and multiple app support)?$/ do |api_key, multi_app|
+When /^I configure the Heroku shim with "([^\"]*)"( and multiple app support)?$/ do |_api_key, multi_app|
   heroku_script_bin = File.join(TEMP_DIR, "bin")
   FileUtils.mkdir_p(heroku_script_bin)
   heroku_script     = File.join(heroku_script_bin, "heroku")
@@ -178,7 +178,7 @@ fi
 end
 
 When /^I configure the application to filter parameter "([^\"]*)"$/ do |parameter|
-  application_filename = File.join(rails_root, 'config', 'application.rb')
+  application_filename = File.join(rails_root, "config", "application.rb")
   application_lines = File.open(application_filename).readlines
 
   application_definition_line       = application_lines.detect { |line| line =~ /Application/ }
@@ -193,7 +193,7 @@ When /^I configure the application to filter parameter "([^\"]*)"$/ do |paramete
 end
 
 When /^I have set up authentication system in my app that uses "([^\"]*)"$/ do |current_user|
-  application_controller = File.join(rails_root, 'app', 'controllers', "application_controller.rb")
+  application_controller = File.join(rails_root, "app", "controllers", "application_controller.rb")
   definition =
     """
   class ApplicationController < ActionController::Base
@@ -206,62 +206,62 @@ When /^I have set up authentication system in my app that uses "([^\"]*)"$/ do |
     end
   end
   """
-  File.open(application_controller, "w") {|file| file.puts definition }
+  File.open(application_controller, "w") { |file| file.puts definition }
 end
 
 Then /^the Airbrake notification should contain "([^\"]*)"$/ do |content|
-  step %{the last notice sent should contain "#{content}"}
+  step %(the last notice sent should contain "#{content}")
 end
 
 Then /^the Airbrake notification should not contain "([^\"]*)"$/ do |content|
-  step %{the last notice sent should not contain "#{content}"}
+  step %(the last notice sent should not contain "#{content}")
 end
 
 Then /^the Airbrake notification should contain the custom user details$/ do
-  step %{the last notice sent should contain "<name>Bender</name>"}
-  step %{the last notice sent should contain "<email>bender@beer.com</email>"}
-  step %{the last notice sent should contain "<username>b3nd0r</username>"}
+  step %(the last notice sent should contain "<name>Bender</name>")
+  step %(the last notice sent should contain "<email>bender@beer.com</email>")
+  step %(the last notice sent should contain "<username>b3nd0r</username>")
 end
 
 Then /^the Airbrake notification should contain user details$/ do
-  step %{the last notice sent should contain "<id>1</id>"}
+  step %(the last notice sent should contain "<id>1</id>")
 end
 
 Then /^the Airbrake notification should not contain any of the sensitive Rack variables$/ do
   sensitive_rack_data_regex = FILTERED_RACK_VARS.map do |var|
     var.instance_of?(Regexp) ? var : Regexp.quote(var)
   end.join("|")
-  step %{the last notice sent should not contain keys with "#{sensitive_rack_data_regex}"}
+  step %(the last notice sent should not contain keys with "#{sensitive_rack_data_regex}")
 end
 
 Then /^the last notice sent should contain "([^\"]*)"$/ do |data|
   last_notice = File.read(LAST_NOTICE)
-  last_notice.should match(%r{#{data}})
+  last_notice.should match(/#{data}/)
 end
 
 Then /^the last notice sent should not contain "([^\"]*)"$/ do |data|
   last_notice = File.read(LAST_NOTICE)
-  last_notice.should_not match(%r{#{data}})
+  last_notice.should_not match(/#{data}/)
 end
 
 Then /^the last notice sent should not contain keys with "([^\"]*)"$/ do |data|
   last_notice = File.read(LAST_NOTICE)
-  last_notice.should_not match(%r{key\=\"(#{data})\"})
+  last_notice.should_not match(/key\=\"(#{data})\"/)
 end
 
 Then /^the Airbrake notification should contain the framework information$/ do
-  step %{the last notice sent should contain "Rails: #{ENV["RAILS_VERSION"]}"}
+  step %(the last notice sent should contain "Rails: #{ENV['RAILS_VERSION']}")
 end
 
 When /^I list the application's middleware and save it into a file$/ do
-  step %{I run `bash -c 'bundle exec rake middleware > middleware.dump'`}
+  step %(I run `bash -c 'bundle exec rake middleware > middleware.dump'`)
 end
 
 Then /^the Airbrake middleware should be placed correctly$/ do
-  middleware_file = File.join(LOCAL_RAILS_ROOT, 'middleware.dump')
+  middleware_file = File.join(LOCAL_RAILS_ROOT, "middleware.dump")
   middleware      = File.read(middleware_file).split(/\n/)
   airbrake_index  = middleware.rindex("use Airbrake::Rails::Middleware")
   middleware_index = middleware.rindex("use ActionDispatch::DebugExceptions") ||
-    middleware.rindex("use ActionDispatch::ShowExceptions")
+                     middleware.rindex("use ActionDispatch::ShowExceptions")
   (airbrake_index > middleware_index).should be_true
 end

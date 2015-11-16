@@ -1,6 +1,6 @@
-require File.expand_path '../helper', __FILE__
+require File.expand_path "../helper", __FILE__
 
-require 'airbrake/rails'
+require "airbrake/rails"
 
 class RailsInitializerTest < Test::Unit::TestCase
   include DefinesConstants

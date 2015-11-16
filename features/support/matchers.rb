@@ -8,7 +8,7 @@ RSpec::Matchers.define :have_content do |xpath, content|
       element_with_content = document.at("#{xpath}[contains(.,'#{content}')]")
 
       if element_with_content.nil?
-        @found = @elements.collect { |element| element.content }
+        @found = @elements.collect(&:content)
 
         false
       else

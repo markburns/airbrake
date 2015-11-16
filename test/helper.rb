@@ -1,10 +1,10 @@
-require "simplecov" 
+require "simplecov"
 
 if ENV["INTEGRATION"] then SimpleCov.command_name "test:integration"
 else SimpleCov.command_name "test:units"
 end
 
-SimpleCov.merge_timeout 3600 
+SimpleCov.merge_timeout 3600
 SimpleCov.start
 
 if ENV["CI"]
@@ -20,7 +20,8 @@ module Kernel
   end
 
   def with_warnings(flag)
-    old_verbose, $VERBOSE = $VERBOSE, flag
+    old_verbose = $VERBOSE
+    $VERBOSE = flag
     yield
   ensure
     $VERBOSE = old_verbose
@@ -28,69 +29,69 @@ module Kernel
 end
 
 silence_warnings do
-  require 'test/unit'
-  require 'rubygems'
+  require "test/unit"
+  require "rubygems"
 
-  require 'thread'
+  require "thread"
 
-  require 'mocha/setup'
-  require 'nokogiri'
-  require 'rack'
-  require 'bourne'
-  require 'sham_rack'
-  require 'json-schema'
+  require "mocha/setup"
+  require "nokogiri"
+  require "rack"
+  require "bourne"
+  require "sham_rack"
+  require "json-schema"
   require "shoulda-matchers"
   require "shoulda-context"
   require "fakeweb"
   require "pry"
 
-  begin require 'redgreen'; rescue LoadError; end
+  begin require "redgreen"; rescue LoadError; end
 end
 
 $LOAD_PATH << File.expand_path(File.join(File.dirname(__FILE__), "..", "lib"))
 
 require "airbrake"
 
-XSD_SCHEMA_PATH    = "http://airbrake.io/airbrake_#{Airbrake::API_VERSION.tr(".","_")}.xsd"
+XSD_SCHEMA_PATH    = "http://airbrake.io/airbrake_#{Airbrake::API_VERSION.tr('.', '_')}.xsd"
 COVERALLS_API_URL  = "https://coveralls.io/api/v1"
 
-FakeWeb.allow_net_connect = %r{#{XSD_SCHEMA_PATH}|#{COVERALLS_API_URL}}
+FakeWeb.allow_net_connect = /#{XSD_SCHEMA_PATH}|#{COVERALLS_API_URL}/
 
 module TestMethods
-  def rescue_action e
-    raise e
+  def rescue_action(e)
+    fail e
   end
 
   def do_raise
-    raise "Airbrake"
+    fail "Airbrake"
   end
 
   def do_not_raise
-    render :text => "Success"
+    render text: "Success"
   end
 
   def do_raise_ignored
-    raise ActiveRecord::RecordNotFound.new("404")
+    fail ActiveRecord::RecordNotFound.new("404")
   end
 
   def do_raise_not_ignored
-    raise ActiveRecord::StatementInvalid.new("Statement invalid")
+    fail ActiveRecord::StatementInvalid.new("Statement invalid")
   end
 
   def manual_notify
     notify_airbrake(Exception.new)
-    render :text => "Success"
+    render text: "Success"
   end
 
   def manual_notify_ignored
     notify_airbrake(ActiveRecord::RecordNotFound.new("404"))
-    render :text => "Success"
+    render text: "Success"
   end
 end
 
 module TestHelpers
   def stub_sender
-    stub('sender', :send_to_airbrake => nil)
+    stub("sender", send_to_airbrake: nil)
   end
 
   def stub_sender!
@@ -98,19 +99,19 @@ module TestHelpers
   end
 
   def stub_notice
-    stub('notice', :to_xml => 'some yaml', :ignore? => false)
+    stub("notice", to_xml: "some yaml", ignore?: false)
   end
 
   def stub_notice!
-     stub_notice.tap do |notice|
-      Airbrake::Notice.stubs(:new => notice)
+    stub_notice.tap do |notice|
+      Airbrake::Notice.stubs(new: notice)
     end
   end
 
   def reset_config
     Airbrake.configuration = nil
     Airbrake.configure do |config|
-      config.api_key = 'abc123'
+      config.api_key = "abc123"
     end
   end
 
@@ -122,26 +123,26 @@ module TestHelpers
     backtrace = ["airbrake/test/helper.rb:132:in `build_exception'",
                  "airbrake/test/backtrace.rb:4:in `build_notice_data'",
                  "/var/lib/gems/1.8/gems/airbrake-2.4.5/rails/init.rb:2:in `send_exception'"]
-    opts = {:backtrace => backtrace}.merge(opts)
+    opts = { backtrace: backtrace }.merge(opts)
     BacktracedException.new(opts)
   end
 
   def build_notice_data(exception = nil)
     exception ||= build_exception
     {
-      :api_key       => 'abc123',
-      :error_class   => exception.class.name,
-      :error_message => "#{exception.class.name}: #{exception.message}",
-      :backtrace     => exception.backtrace,
-      :environment   => { 'PATH' => '/bin', 'REQUEST_URI' => '/users/1' },
-      :request       => {
-        :params     => { 'controller' => 'users', 'action' => 'show', 'id' => '1' },
-        :rails_root => '/path/to/application',
-        :url        => "http://test.host/users/1"
+      api_key: "abc123",
+      error_class: exception.class.name,
+      error_message: "#{exception.class.name}: #{exception.message}",
+      backtrace: exception.backtrace,
+      environment: { "PATH" => "/bin", "REQUEST_URI" => "/users/1" },
+      request: {
+        params: { "controller" => "users", "action" => "show", "id" => "1" },
+        rails_root: "/path/to/application",
+        url: "http://test.host/users/1"
       },
-      :session       => {
-        :key  => '123abc',
-        :data => { 'user_id' => '5', 'flash' => { 'notice' => 'Logged in successfully' } }
+      session: {
+        key: "123abc",
+        data: { "user_id" => "5", "flash" => { "notice" => "Logged in successfully" } }
       }
     }
   end
@@ -164,21 +165,21 @@ module TestHelpers
 
   def assert_valid_node(document, xpath, content)
     nodes = document.xpath(xpath)
-    assert nodes.any?{|node| node.content == content },
-           "Expected xpath #{xpath} to have content #{content}, " +
-           "but found #{nodes.map { |n| n.content }} in #{nodes.size} matching nodes." +
-           "Document:\n#{document.to_s}"
+    assert nodes.any? { |node| node.content == content },
+           "Expected xpath #{xpath} to have content #{content}, " \
+           "but found #{nodes.map(&:content)} in #{nodes.size} matching nodes." \
+           "Document:\n#{document}"
   end
 
   def assert_logged(expected)
     assert_received(Airbrake, :write_verbose_log) do |expect|
-      expect.with {|actual| actual =~ expected }
+      expect.with { |actual| actual =~ expected }
     end
   end
 
   def assert_not_logged(expected)
     assert_received(Airbrake, :write_verbose_log) do |expect|
-      expect.with {|actual| actual =~ expected }.never
+      expect.with { |actual| actual =~ expected }.never
     end
   end
 end

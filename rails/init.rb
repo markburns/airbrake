@@ -1,1 +1,1 @@
-require 'airbrake/rails'
+require "airbrake/rails"

@@ -1,14 +1,14 @@
 #!/usr/bin/env ruby
 
-require 'logger'
-require 'fileutils'
+require "logger"
+require "fileutils"
 
 RAILS_ENV = "production"
 RAILS_ROOT = FileUtils.pwd
 RAILS_DEFAULT_LOGGER = Logger.new(STDOUT)
 
-$: << File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib'))
-require 'airbrake'
+$LOAD_PATH << File.expand_path(File.join(File.dirname(__FILE__), "..", "lib"))
+require "airbrake"
 
 fail "Please supply an API Key as the first argument" if ARGV.empty?
 
@@ -29,7 +29,7 @@ Airbrake.configuration.to_hash.each do |key, value|
   puts sprintf("%25s: %s", key.to_s, value.inspect.slice(0, 55))
 end
 
-puts "Sending #{secure ? "" : "in"}secure notification to project with key #{ARGV.first}"
+puts "Sending #{secure ? '' : 'in'}secure notification to project with key #{ARGV.first}"
 if Airbrake.notify(exception) then puts "\nIntegration test passed with success!"
 else puts "\nIntegration test was unsuccessful."
 end

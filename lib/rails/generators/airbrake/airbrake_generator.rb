@@ -1,22 +1,22 @@
-require 'rails/generators'
+require "rails/generators"
 
 class AirbrakeGenerator < Rails::Generators::Base
   desc "Creates the Airbrake initializer file at config/initializers/airbrake.rb"
 
-  class_option :api_key, :aliases => "-k", :type => :string,
-    :desc => "Your Airbrake API key"
+  class_option :api_key, aliases: "-k", type: :string,
+                         desc: "Your Airbrake API key"
 
-  class_option :heroku, :type => :boolean,
-    :desc => "Use the Heroku addon to provide your Airbrake API key"
+  class_option :heroku, type: :boolean,
+                        desc: "Use the Heroku addon to provide your Airbrake API key"
 
-  class_option :app, :aliases => "-a", :type => :string,
-    :desc => "Your Heroku app name (only required if deploying to >1 Heroku app)"
+  class_option :app, aliases: "-a", type: :string,
+                     desc: "Your Heroku app name (only required if deploying to >1 Heroku app)"
 
-  class_option :secure, :type => :boolean,
-    :desc => "Use SSL connection"
+  class_option :secure, type: :boolean,
+                        desc: "Use SSL connection"
 
-  class_option :test_mode, :aliases => "-t", :type => :boolean,
-    :desc => "Use Airbrake in test mode"
+  class_option :test_mode, aliases: "-t", type: :boolean,
+                           desc: "Use Airbrake in test mode"
 
   def self.source_root
     @_airbrake_source_root ||= File.expand_path("../../../../../generators/airbrake/templates", __FILE__)
@@ -48,21 +48,21 @@ class AirbrakeGenerator < Rails::Generators::Base
   end
 
   def capistrano_present?
-    !Gem.loaded_specs['capistrano'].nil? &&
-      File.exists?('config/deploy.rb') &&
-      File.exists?('Capfile')
+    !Gem.loaded_specs["capistrano"].nil? &&
+      File.exist?("config/deploy.rb") &&
+      File.exist?("Capfile")
   end
 
   def append_capistrano_hook
-    if capistrano_version < Gem::Version.new('3')
-      append_file('config/deploy.rb', capistrano2_hook)
+    if capistrano_version < Gem::Version.new("3")
+      append_file("config/deploy.rb", capistrano2_hook)
     else
-      append_file('config/deploy.rb', capistrano3_hook)
+      append_file("config/deploy.rb", capistrano3_hook)
     end
   end
 
   def capistrano_version
-    Gem.loaded_specs['capistrano'].version
+    Gem.loaded_specs["capistrano"].version
   end
 
   def capistrano2_hook
@@ -90,13 +90,13 @@ after "deploy:finished", "airbrake:deploy"
   end
 
   def generate_initializer
-    template 'initializer.rb', 'config/initializers/airbrake.rb'
+    template "initializer.rb", "config/initializers/airbrake.rb"
   end
 
   def determine_api_key
     puts "Attempting to determine your API Key from Heroku..."
-    ENV['AIRBRAKE_API_KEY'] = heroku_api_key
-    if ENV['AIRBRAKE_API_KEY'] =~ /\S/
+    ENV["AIRBRAKE_API_KEY"] = heroku_api_key
+    if ENV["AIRBRAKE_API_KEY"] =~ /\S/
       puts "... Done."
       puts "Heroku's Airbrake API Key is '#{ENV['AIRBRAKE_API_KEY']}'"
     else
@@ -107,13 +107,13 @@ after "deploy:finished", "airbrake:deploy"
     end
   end
 
-  def heroku_var(var,app_name = nil)
-    app = app_name ? "-a #{app_name}" : ''
+  def heroku_var(var, app_name = nil)
+    app = app_name ? "-a #{app_name}" : ""
     `heroku config:get #{var} #{app}`
   end
 
   def heroku_api_key
-    heroku_var("AIRBRAKE_API_KEY",options[:app]).split.find {|x| x if x =~ /\S/}
+    heroku_var("AIRBRAKE_API_KEY", options[:app]).split.find { |x| x if x =~ /\S/ }
   end
 
   def secure?
@@ -131,7 +131,7 @@ after "deploy:finished", "airbrake:deploy"
   end
 
   def api_key_configured?
-    File.exists?('config/initializers/airbrake.rb')
+    File.exist?("config/initializers/airbrake.rb")
   end
 
   def test_airbrake
@@ -139,7 +139,7 @@ after "deploy:finished", "airbrake:deploy"
   end
 
   def plugin_is_present?
-    File.exists?('vendor/plugins/airbrake')
+    File.exist?("vendor/plugins/airbrake")
   end
 
   def configuration_output

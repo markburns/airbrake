@@ -1,12 +1,10 @@
 module Airbrake
   # Front end to parsing the backtrace for each notice
   class Backtrace
-
     # Handles backtrace parsing line by line
     class Line
-
       # regexp (optionnally allowing leading X: for windows support)
-      INPUT_FORMAT = %r{^((?:[a-zA-Z]:)?[^:]+):(\d+)(?::in `([^']+)')?$}.freeze
+      INPUT_FORMAT = /^((?:[a-zA-Z]:)?[^:]+):(\d+)(?::in `([^']+)')?$/.freeze
 
       # The file portion of the line (such as app/models/user.rb)
       attr_reader :file
@@ -41,7 +39,7 @@ module Airbrake
       end
 
       def inspect
-        "<Line:#{to_s}>"
+        "<Line:#{self}>"
       end
     end
 
@@ -70,7 +68,7 @@ module Airbrake
     end
 
     def inspect
-      "<Backtrace: " + lines.collect { |line| line.inspect }.join(", ") + ">"
+      "<Backtrace: " + lines.collect(&:inspect).join(", ") + ">"
     end
 
     def to_s

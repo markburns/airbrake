@@ -1,13 +1,19 @@
-require File.expand_path '../helper', __FILE__
+require File.expand_path "../helper", __FILE__
 
-require 'airbrake/rails/controller_methods'
+require "airbrake/rails/controller_methods"
 class TestController
   include Airbrake::Rails::ControllerMethods
 
-  def params; {}; end
-  def session; nil; end
+  def params
+    {}
+  end
+
+  def session
+    nil
+  end
+
   def request
-    OpenStruct.new(:port=> 80, :protocol => 'http://', host: 'example.com', :fullpath => 'path', :env => [])
+    OpenStruct.new(port: 80, protocol: "http://", host: "example.com", fullpath: "path", env: [])
   end
 end
 
@@ -19,13 +25,13 @@ end
 
 class CurrentUserTestController < TestController
   def current_user
-    OpenStruct.new(:id => 123, :name => 'tape')
+    OpenStruct.new(id: 123, name: "tape")
   end
 end
 
 class CurrentMemberTestController < TestController
   def current_member
-    OpenStruct.new(:id => 321, :name => 'mamba')
+    OpenStruct.new(id: 321, name: "mamba")
   end
 end
 
@@ -43,7 +49,7 @@ end
 
 class CurrentUserAttributeErrorTestController < TestController
   def current_user
-    user = OpenStruct.new(:id => 123)
+    user = OpenStruct.new(id: 123)
     def user.name
       fail 'Testing attribute that raises error on #current_user'
     end
@@ -60,8 +66,8 @@ end
 class ParamTestController < TestController
   QUERY_PARAMS = { name: "|" } # URI parameter with invalid character
   def request
-    query = QUERY_PARAMS.map { |k, v| "#{k}=#{v}"}.join("&")
-    OpenStruct.new(:port=> 80, :protocol => 'http://', host: 'example.com', :fullpath => "path?#{query}", :env => [])
+    query = QUERY_PARAMS.map { |k, v| "#{k}=#{v}" }.join("&")
+    OpenStruct.new(port: 80, protocol: "http://", host: "example.com", fullpath: "path?#{query}", env: [])
   end
 end
 
@@ -71,7 +77,6 @@ class ControllerMethodsTest < Test::Unit::TestCase
   context "#airbrake_request_data" do
     context "without a logged in user" do
       setup do
-
         NilClass.class_eval do
           @@called = false
 
@@ -98,21 +103,21 @@ class ControllerMethodsTest < Test::Unit::TestCase
         Object.__send__(:remove_const, :ActiveRecord) if defined?(ActiveRecord)
         Object.__send__(:remove_const, :POOL) if defined?(POOL)
       end
-      should 'include user info in the data sent to Ab' do
+      should "include user info in the data sent to Ab" do
         Airbrake.configuration.user_attributes = %w(id)
         controller = CurrentUserTestController.new
         ab_data = controller.airbrake_request_data
 
-        assert_equal( {:id => 123},  ab_data[:user])
+        assert_equal({ id: 123 }, ab_data[:user])
       end
 
-      should 'include more info if asked to, discarding unknown attributes' do
+      should "include more info if asked to, discarding unknown attributes" do
         Airbrake.configuration.user_attributes = %w(id name collar-size)
 
         controller = CurrentUserTestController.new
         ab_data = controller.airbrake_request_data
 
-        assert_equal( {:id => 123, :name => 'tape'},  ab_data[:user])
+        assert_equal({ id: 123, name: "tape" }, ab_data[:user])
       end
 
       should 'work with a "current_member" method too' do
@@ -120,41 +125,43 @@ class ControllerMethodsTest < Test::Unit::TestCase
         controller = CurrentMemberTestController.new
         ab_data = controller.airbrake_request_data
 
-        assert_equal( {:id => 321},  ab_data[:user])
+        assert_equal({ id: 321 }, ab_data[:user])
       end
 
       should "release DB connections" do
         ::POOL = Object.new
-        module ::ActiveRecord; class Base; def self.connection_pool; ::POOL; end; end; end
+        module ::ActiveRecord; class Base; def self.connection_pool
+                                             ::POOL
+                                           end; end; end
         ::POOL.expects(:release_connection)
 
         CurrentUserTestController.new.airbrake_request_data
       end
     end
 
-    context 'when loading the user raises an error' do
-      should 'send empty user info to Ab when current_user fails' do
+    context "when loading the user raises an error" do
+      should "send empty user info to Ab when current_user fails" do
         Airbrake.configuration.user_attributes = %w(id)
         controller = CurrentUserErrorTestController.new
         ab_data = controller.airbrake_request_data
 
-        assert_equal( { },  ab_data[:user] )
+        assert_equal({}, ab_data[:user])
       end
 
-      should 'send empty user info to Ab when current_member fails' do
+      should "send empty user info to Ab when current_member fails" do
         Airbrake.configuration.user_attributes = %w(id)
         controller = CurrentMemberErrorTestController.new
         ab_data = controller.airbrake_request_data
 
-        assert_equal( { },  ab_data[:user] )
+        assert_equal({}, ab_data[:user])
       end
 
-      should 'exclude any user attributes that raise an error' do
+      should "exclude any user attributes that raise an error" do
         Airbrake.configuration.user_attributes = %w(id name)
         controller = CurrentUserAttributeErrorTestController.new
         ab_data = controller.airbrake_request_data
 
-        assert_equal( {:id => 123},  ab_data[:user])
+        assert_equal({ id: 123 }, ab_data[:user])
       end
     end
   end
@@ -163,9 +170,9 @@ class ControllerMethodsTest < Test::Unit::TestCase
     setup do
       @controller = NoSessionTestController.new
     end
-    should 'not call session if no session' do
+    should "not call session if no session" do
       no_session = @controller.send(:airbrake_session_data)
-      assert_equal no_session, {:session => 'no session found'}
+      assert_equal no_session, { session: "no session found" }
     end
   end
 
@@ -196,13 +203,13 @@ class ControllerMethodsTest < Test::Unit::TestCase
     end
 
     should "call filter_rails3_parameters" do
-      hash = {:a => "b"}
-      filtered_hash = {:c => "d"}
+      hash = { a: "b" }
+      filtered_hash = { c: "d" }
 
-      @controller.expects(:filter_rails3_parameters).with(hash).
-        returns(filtered_hash)
+      @controller.expects(:filter_rails3_parameters).with(hash)
+        .returns(filtered_hash)
       assert_equal filtered_hash,
-        @controller.send(:airbrake_filter_if_filtering, hash)
+                   @controller.send(:airbrake_filter_if_filtering, hash)
     end
   end
 
@@ -213,19 +220,18 @@ class ControllerMethodsTest < Test::Unit::TestCase
       ::Rails.stubs(:version).returns("4.5.6.7")
     end
 
-    should 'be true when running Rails 4.x' do
+    should "be true when running Rails 4.x" do
       assert @controller.send(:rails_3_or_4?)
     end
 
     should "call filter_rails3_parameters" do
-      hash = {:a => "b"}
-      filtered_hash = {:c => "d"}
+      hash = { a: "b" }
+      filtered_hash = { c: "d" }
 
-      @controller.expects(:filter_rails3_parameters).with(hash).
-        returns(filtered_hash)
+      @controller.expects(:filter_rails3_parameters).with(hash)
+        .returns(filtered_hash)
       assert_equal filtered_hash,
-        @controller.send(:airbrake_filter_if_filtering, hash)
+                   @controller.send(:airbrake_filter_if_filtering, hash)
     end
   end
-
 end
