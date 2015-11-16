@@ -120,7 +120,7 @@ module Airbrake
       also_use_rack_params_filters
       find_session_data
 
-      setup_cleaner!(args)
+      setup_cleaner!
       clean_data!
     end
 
@@ -208,7 +208,7 @@ module Airbrake
       end
     end
 
-    def setup_cleaner!(args)
+    def setup_cleaner!
       @cleaner ||=
         Airbrake::Utils::ParamsCleaner.new(
           :blacklist_filters => params_filters,
