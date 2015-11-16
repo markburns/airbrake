@@ -103,7 +103,6 @@ module Airbrake
                       rack_env(:params) ||
                       {}
 
-      require "byebug"
       @component ||= args[:controller] || parameters["controller"]
       @action ||= parameters["action"]
 
