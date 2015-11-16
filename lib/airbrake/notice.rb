@@ -100,56 +100,28 @@ module Airbrake
     public
 
     def initialize(args)
-      @args             = args
-      @exception        = args[:exception]
-      @api_key          = args[:api_key]
-      @project_root     = args[:project_root]
-      @url              = args[:url] || rack_env(:url)
-      @notifier_name    = args[:notifier_name]
-      @notifier_version = args[:notifier_version]
-      @notifier_url     = args[:notifier_url]
+      setup_instance_variables!(args)
+      @parameters ||= action_dispatch_params ||
+                      rack_env(:params) ||
+                      {}
 
-      @ignore                   = args[:ignore]                   || []
-      @ignore_by_filters        = args[:ignore_by_filters]        || []
-      @backtrace_filters        = args[:backtrace_filters]        || []
-      @params_filters           = args[:params_filters]           || []
-      @params_whitelist_filters = args[:params_whitelist_filters] || []
+      require "byebug"
+      @component  ||= args[:controller] || parameters['controller']
+      @action     ||= parameters['action']
 
-      @parameters          = args[:parameters] ||
-                                   action_dispatch_params ||
-                                   rack_env(:params) ||
-                                   {}
-      @component           = args[:component] || args[:controller] || parameters['controller']
-      @action              = args[:action] || parameters['action']
-
-      @environment_name = args[:environment_name]
       @cgi_data         = (args[:cgi_data].respond_to?(:to_hash) && args[:cgi_data].to_hash.dup) || args[:rack_env] || {}
-      @backtrace        = Backtrace.parse(exception_attribute(:backtrace, caller), :filters => @backtrace_filters)
-      @error_class      = exception_attribute(:error_class) {|exception| exception.class.name }
-      @error_message    = exception_attribute(:error_message, 'Notification') do |exception|
-        "#{exception.class.name}: #{args[:error_message] || exception.message}"
-      end
+
+      setup_exception!(args)
 
       @hostname        = local_hostname
       @user            = args[:user] || {}
 
-      @exception_classes= Array(args[:exception_classes])
-      if @exception
-        @exception_classes << @exception.class
-      end
-      if @error_class
-        @exception_classes << @error_class
-      end
-
+      setup_exception_classes!(args)
 
       also_use_rack_params_filters
       find_session_data
 
-      @cleaner = args[:cleaner] ||
-        Airbrake::Utils::ParamsCleaner.new(:blacklist_filters => params_filters,
-                                           :whitelist_filters => params_whitelist_filters,
-                                           :to_clean => data_to_clean)
-
+      setup_cleaner!(args)
       clean_data!
     end
 
@@ -286,6 +258,64 @@ module Airbrake
     end
 
     private
+
+    def setup_instance_variables!(args)
+      @args = args
+
+      initialize_as_array = %w(
+        ignore ignore_by_filters backtrace_filters
+      )
+
+      to_initialize = %w(
+        exception api_key project_root url
+        parameters
+        notifier_name notifier_version notifier_url
+        params_filters params_whitelist_filters
+        component action environment_name
+        cleaner
+      )
+
+      initialize_as_array.each do |attr|
+        instance_variable_set("@#{attr}", args[attr.to_sym] || [])
+      end
+
+      to_initialize.each do |attr|
+        instance_variable_set("@#{attr}", args[attr.to_sym])
+      end
+
+       @url ||= rack_env(:url)
+    end
+
+    def setup_exception!(args)
+      @backtrace        = Backtrace.parse(exception_attribute(:backtrace, caller), :filters => @backtrace_filters)
+      @error_class      = exception_attribute(:error_class) {|exception| exception.class.name }
+      @error_message    = exception_attribute(:error_message, 'Notification') do |exception|
+        "#{exception.class.name}: #{args[:error_message] || exception.message}"
+      end
+    end
+
+
+    def setup_exception_classes!(args)
+      @exception_classes = Array(args[:exception_classes])
+
+      if @exception
+        @exception_classes << @exception.class
+      end
+      if @error_class
+        @exception_classes << @error_class
+      end
+    end
+
+    def setup_cleaner!(args)
+      @cleaner ||=
+        Airbrake::Utils::ParamsCleaner.new(
+          :blacklist_filters => params_filters,
+          :whitelist_filters => params_whitelist_filters,
+          :to_clean => data_to_clean)
+    end
+
+
+
 
     def request_present?
       url ||
