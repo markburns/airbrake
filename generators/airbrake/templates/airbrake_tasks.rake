@@ -1,14 +1,14 @@
 # Don't load anything when running the gems:* tasks.
 # Otherwise, airbrake will be considered a framework gem.
 # https://thoughtbot.lighthouseapp.com/projects/14221/tickets/629
-unless ARGV.any? {|a| a =~ /^gems/}
+unless ARGV.any? { |a| a =~ /^gems/ }
 
-  Dir[File.join(Rails.root, 'vendor', 'gems', 'airbrake-*')].each do |vendored_notifier|
-    $: << File.join(vendored_notifier, 'lib')
+  Dir[File.join(Rails.root, "vendor", "gems", "airbrake-*")].each do |vendored_notifier|
+    $LOAD_PATH << File.join(vendored_notifier, "lib")
   end
 
   begin
-    require 'airbrake/tasks'
+    require "airbrake/tasks"
   rescue LoadError => exception
     namespace :airbrake do
       %w(deploy test log_stdout).each do |task_name|

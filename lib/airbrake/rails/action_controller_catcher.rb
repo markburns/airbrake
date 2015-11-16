@@ -1,7 +1,6 @@
 module Airbrake
   module Rails
     module ActionControllerCatcher
-
       # Sets up an alias chain to catch exceptions for Rails 2
       def self.included(base) #:nodoc:
         if base.method_defined?(:rescue_action_in_public)
@@ -17,7 +16,7 @@ module Airbrake
       def rescue_action_in_public_with_airbrake(exception)
         unless airbrake_ignore_user_agent?
           error_id = Airbrake.notify_or_ignore(exception, airbrake_request_data)
-          request.env['airbrake.error_id'] = error_id
+          request.env["airbrake.error_id"] = error_id
         end
         rescue_action_in_public_without_airbrake(exception)
       end

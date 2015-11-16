@@ -1,7 +1,6 @@
-require File.expand_path '../helper', __FILE__
+require File.expand_path "../helper", __FILE__
 
 class NotifierTest < Test::Unit::TestCase
-
   class OriginalException < Exception
   end
 
@@ -16,16 +15,16 @@ class NotifierTest < Test::Unit::TestCase
   end
 
   def assert_sent(notice, notice_args)
-    assert_received(Airbrake::Notice, :new) {|expect| expect.with(has_entries(notice_args)) }
-    assert_received(Airbrake.sender, :send_to_airbrake) {|expect| expect.with(notice) }
+    assert_received(Airbrake::Notice, :new) { |expect| expect.with(has_entries(notice_args)) }
+    assert_received(Airbrake.sender, :send_to_airbrake) { |expect| expect.with(notice) }
   end
 
   def set_public_env
-    Airbrake.configure { |config| config.environment_name = 'production' }
+    Airbrake.configure { |config| config.environment_name = "production" }
   end
 
   def set_development_env
-    Airbrake.configure { |config| config.environment_name = 'development' }
+    Airbrake.configure { |config| config.environment_name = "development" }
   end
 
   should "yield and save a configuration when configuring" do
@@ -50,7 +49,7 @@ class NotifierTest < Test::Unit::TestCase
 
   should "configure the sender" do
     sender = stub_sender
-    Airbrake::Sender.stubs(:new => sender)
+    Airbrake::Sender.stubs(new: sender)
     configuration = nil
 
     Airbrake.configure { |yielded_config| configuration = yielded_config }
@@ -67,13 +66,13 @@ class NotifierTest < Test::Unit::TestCase
 
     Airbrake.notify(exception)
 
-    assert_sent notice, :exception => exception
+    assert_sent notice, exception: exception
   end
 
   should "create and send a notice for a hash" do
     set_public_env
     notice = stub_notice!
-    notice_args = { :error_message => 'uh oh' }
+    notice_args = { error_message: "uh oh" }
     stub_sender!
 
     Airbrake.notify(notice_args)
@@ -84,37 +83,37 @@ class NotifierTest < Test::Unit::TestCase
   should "not pass the hash as an exception when sending a notice for it" do
     set_public_env
     stub_notice!
-    notice_args = { :error_message => 'uh oh' }
+    notice_args = { error_message: "uh oh" }
     stub_sender!
 
     Airbrake.notify(notice_args)
 
-    assert_received(Airbrake::Notice, :new) {|expect| expect.with(Not(has_key(:exception))) }
+    assert_received(Airbrake::Notice, :new) { |expect| expect.with(Not(has_key(:exception))) }
   end
 
   should "create and send a notice for an exception that responds to to_hash" do
     set_public_env
     exception = build_exception
     notice = stub_notice!
-    notice_args = { :error_message => 'uh oh' }
+    notice_args = { error_message: "uh oh" }
     exception.stubs(:to_hash).returns(notice_args)
     stub_sender!
 
     Airbrake.notify(exception)
 
-    assert_sent(notice, notice_args.merge(:exception => exception))
+    assert_sent(notice, notice_args.merge(exception: exception))
   end
 
   should "create and sent a notice for an exception and hash" do
     set_public_env
     exception = build_exception
     notice = stub_notice!
-    notice_args = { :error_message => 'uh oh' }
+    notice_args = { error_message: "uh oh" }
     stub_sender!
 
     Airbrake.notify(exception, notice_args)
 
-    assert_sent(notice, notice_args.merge(:exception => exception))
+    assert_sent(notice, notice_args.merge(exception: exception))
   end
 
   should "not create a notice in a development environment" do
@@ -124,7 +123,7 @@ class NotifierTest < Test::Unit::TestCase
     Airbrake.notify(build_exception)
     Airbrake.notify_or_ignore(build_exception)
 
-    assert_received(sender, :send_to_airbrake) {|expect| expect.never }
+    assert_received(sender, :send_to_airbrake, &:never)
   end
 
   should "not deliver an ignored exception when notifying implicitly" do
@@ -132,16 +131,16 @@ class NotifierTest < Test::Unit::TestCase
     exception = build_exception
     sender = stub_sender!
     notice = stub_notice!
-    notice.stubs(:ignore? => true)
+    notice.stubs(ignore?: true)
 
     Airbrake.notify_or_ignore(exception)
 
-    assert_received(sender, :send_to_airbrake) {|expect| expect.never }
+    assert_received(sender, :send_to_airbrake, &:never)
   end
 
   should "deliver exception in async-mode" do
     Airbrake.configure do |config|
-      config.environment_name = 'production'
+      config.environment_name = "production"
       config.async do |notice|
         Airbrake.sender.send_to_airbrake(notice)
       end
@@ -152,14 +151,14 @@ class NotifierTest < Test::Unit::TestCase
 
     Airbrake.notify(exception)
 
-    assert_sent(notice, :exception => exception)
+    assert_sent(notice, exception: exception)
   end
 
   should "pass notice in async-mode" do
     received_notice = nil
     Airbrake.configure do |config|
-      config.environment_name = 'production'
-      config.async {|notice| received_notice = notice}
+      config.environment_name = "production"
+      config.async { |notice| received_notice = notice }
     end
     exception = build_exception
     stub_sender!
@@ -175,19 +174,19 @@ class NotifierTest < Test::Unit::TestCase
     exception = build_exception
     stub_sender!
     notice = stub_notice!
-    notice.stubs(:ignore? => true)
+    notice.stubs(ignore?: true)
 
     Airbrake.notify(exception)
 
-    assert_sent(notice, :exception => exception)
+    assert_sent(notice, exception: exception)
   end
 
   should "pass config to created notices" do
     exception = build_exception
-    config_opts = { 'one' => 'two', 'three' => 'four' }
+    config_opts = { "one" => "two", "three" => "four" }
     stub_notice!
     stub_sender!
-    Airbrake.configuration = stub('config', :merge => config_opts, :configured? => true, :public? => true,:async? => nil)
+    Airbrake.configuration = stub("config", merge: config_opts, configured?: true, public?: true, async?: nil)
 
     Airbrake.notify(exception)
 
@@ -198,7 +197,7 @@ class NotifierTest < Test::Unit::TestCase
 
   context "building notice JSON for an exception" do
     setup do
-      @params    = { :controller => "users", :action => "create" }
+      @params    = { controller: "users", action: "create" }
       @exception = build_exception
       @hash      = Airbrake.build_lookup_hash_for(@exception, @params)
     end
@@ -220,7 +219,7 @@ class NotifierTest < Test::Unit::TestCase
     end
 
     should "set rails_env to production" do
-      assert_equal 'production', @hash[:environment_name]
+      assert_equal "production", @hash[:environment_name]
     end
 
     should "set error class" do
@@ -246,7 +245,7 @@ class NotifierTest < Test::Unit::TestCase
     context "when an exception that provides #original_exception is raised" do
       setup do
         @exception.stubs(:original_exception).returns(begin
-          raise NotifierTest::OriginalException.new
+          fail NotifierTest::OriginalException.new
         rescue Exception => e
           e
         end)
@@ -267,7 +266,7 @@ class NotifierTest < Test::Unit::TestCase
     context "when an exception that provides #continued_exception is raised" do
       setup do
         @exception.stubs(:continued_exception).returns(begin
-          raise NotifierTest::ContinuedException.new
+          fail NotifierTest::ContinuedException.new
         rescue Exception => e
           e
         end)

@@ -1,10 +1,9 @@
-require 'socket'
-require 'airbrake/notice/xml_builder'
-require 'airbrake/notice/json_builder'
+require "socket"
+require "airbrake/notice/xml_builder"
+require "airbrake/notice/json_builder"
 
 module Airbrake
   class Notice
-
     class << self
       def attr_reader_with_tracking(*names)
         attr_readers.concat(names)
@@ -13,7 +12,6 @@ module Airbrake
 
       alias_method :attr_reader_without_tracking, :attr_reader
       alias_method :attr_reader, :attr_reader_with_tracking
-
 
       def attr_readers
         @attr_readers ||= []
@@ -105,10 +103,10 @@ module Airbrake
                       rack_env(:params) ||
                       {}
 
-      @component  ||= args[:controller] || parameters['controller']
-      @action     ||= parameters['action']
+      @component ||= args[:controller] || parameters["controller"]
+      @action ||= parameters["action"]
 
-      @cgi_data         = (args[:cgi_data].respond_to?(:to_hash) && args[:cgi_data].to_hash.dup) || args[:rack_env] || {}
+      @cgi_data = (args[:cgi_data].respond_to?(:to_hash) && args[:cgi_data].to_hash.dup) || args[:rack_env] || {}
 
       setup_exception!(args)
 
@@ -136,12 +134,10 @@ module Airbrake
     # Determines if this notice should be ignored
     def ignore?
       exception_classes.each do |klass|
-        if ignored_class_names.include?(klass)
-          return true
-        end
+        return true if ignored_class_names.include?(klass)
       end
 
-      ignore_by_filters.any? {|filter| filter.call(self) }
+      ignore_by_filters.any? { |filter| filter.call(self) }
     end
 
     # Allows properties to be accessed using a hash-like syntax
@@ -185,39 +181,31 @@ module Airbrake
         instance_variable_set("@#{attr}", args[attr.to_sym])
       end
 
-       @url ||= rack_env(:url)
+      @url ||= rack_env(:url)
     end
 
     def setup_exception!(args)
-      @backtrace        = Backtrace.parse(exception_attribute(:backtrace, caller), :filters => @backtrace_filters)
-      @error_class      = exception_attribute(:error_class) {|exception| exception.class.name }
-      @error_message    = exception_attribute(:error_message, 'Notification') do |exception|
+      @backtrace        = Backtrace.parse(exception_attribute(:backtrace, caller), filters: @backtrace_filters)
+      @error_class      = exception_attribute(:error_class) { |exception| exception.class.name }
+      @error_message    = exception_attribute(:error_message, "Notification") do |exception|
         "#{exception.class.name}: #{args[:error_message] || exception.message}"
       end
     end
 
-
     def setup_exception_classes!(args)
       @exception_classes = Array(args[:exception_classes])
 
-      if @exception
-        @exception_classes << @exception.class
-      end
-      if @error_class
-        @exception_classes << @error_class
-      end
+      @exception_classes << @exception.class if @exception
+      @exception_classes << @error_class if @error_class
     end
 
     def setup_cleaner!
       @cleaner ||=
         Airbrake::Utils::ParamsCleaner.new(
-          :blacklist_filters => params_filters,
-          :whitelist_filters => params_whitelist_filters,
-          :to_clean => data_to_clean)
+          blacklist_filters: params_filters,
+          whitelist_filters: params_whitelist_filters,
+          to_clean: data_to_clean)
     end
-
-
-
 
     def request_present?
       url ||
@@ -265,9 +253,9 @@ module Airbrake
     end
 
     def data_to_clean
-      {:parameters    => parameters,
-        :cgi_data     => cgi_data,
-        :session_data => session_data}
+      { parameters: parameters,
+        cgi_data: cgi_data,
+        session_data: session_data }
     end
 
     def find_session_data
@@ -290,21 +278,21 @@ module Airbrake
     def rack_env(method)
       rack_request.send(method) if rack_request
     rescue
-      {:message => "failed to call #{method} on Rack::Request -- #{$!.message}"}
+      { message: "failed to call #{method} on Rack::Request -- #{$ERROR_INFO.message}" }
     end
 
     def rack_request
       @rack_request ||= if @args[:rack_env]
-        ::Rack::Request.new(@args[:rack_env])
+                          ::Rack::Request.new(@args[:rack_env])
       end
     end
 
     def action_dispatch_params
-      @args[:rack_env]['action_dispatch.request.parameters'] if @args[:rack_env]
+      @args[:rack_env]["action_dispatch.request.parameters"] if @args[:rack_env]
     end
 
     def rack_session
-      @args[:rack_env]['rack.session'] if @args[:rack_env]
+      @args[:rack_env]["rack.session"] if @args[:rack_env]
     end
 
     def also_use_rack_params_filters

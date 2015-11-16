@@ -19,7 +19,6 @@ module Airbrake
   #
   # Use a standard Airbrake.configure call to configure your api key.
   class Sinatra < Rack
-
     def initialize(app)
       super
       Airbrake.configuration.environment_name ||= environment_name(app)
@@ -27,7 +26,7 @@ module Airbrake
     end
 
     def framework_exception(env)
-      env['sinatra.error']
+      env["sinatra.error"]
     end
 
     def environment_name(app)

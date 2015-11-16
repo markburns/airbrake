@@ -1,18 +1,17 @@
 module Airbrake
   # Sends out the notice to Airbrake
   class Sender
-
-    NOTICES_URI = '/notifier_api/v2/notices'.freeze
+    NOTICES_URI = "/notifier_api/v2/notices".freeze
     HEADERS = {
-      :xml => {
-      'Content-type' => 'text/xml',
-      'Accept'       => 'text/xml, application/xml'
-    },:json => {
-      'Content-Type' => 'application/json',
-      'Accept'       => 'application/json'
-    }}
+      xml: {
+        "Content-type" => "text/xml",
+        "Accept"       => "text/xml, application/xml"
+      }, json: {
+        "Content-Type" => "application/json",
+        "Accept"       => "application/json"
+      } }
 
-    JSON_API_URI = '/api/v3/projects'.freeze
+    JSON_API_URI = "/api/v3/projects".freeze
     HTTP_ERRORS = [Timeout::Error,
                    Errno::EINVAL,
                    Errno::ECONNRESET,
@@ -24,24 +23,23 @@ module Airbrake
                    OpenSSL::SSL::SSLError].freeze
 
     def initialize(options = {})
-      [ :proxy_host,
-        :proxy_port,
-        :proxy_user,
-        :proxy_pass,
-        :protocol,
-        :host,
-        :port,
-        :secure,
-        :use_system_ssl_cert_chain,
-        :http_open_timeout,
-        :http_read_timeout,
-        :project_id,
-        :api_key
+      [:proxy_host,
+       :proxy_port,
+       :proxy_user,
+       :proxy_pass,
+       :protocol,
+       :host,
+       :port,
+       :secure,
+       :use_system_ssl_cert_chain,
+       :http_open_timeout,
+       :http_read_timeout,
+       :project_id,
+       :api_key
       ].each do |option|
         instance_variable_set("@#{option}", options[option])
       end
     end
-
 
     # Sends the notice data off to Airbrake for processing.
     #
@@ -55,21 +53,21 @@ module Airbrake
                              data,
                              headers)
                  rescue *HTTP_ERRORS => e
-                   log :level => :error,
-                       :message => "Unable to contact the Airbrake server. HTTP Error=#{e}"
+                   log level: :error,
+                       message: "Unable to contact the Airbrake server. HTTP Error=#{e}"
                    nil
                  end
 
       case response
       when Net::HTTPSuccess then
-        log :level => :info,
-            :message => "Success: #{response.class}",
-            :response => response
+        log level: :info,
+            message: "Success: #{response.class}",
+            response: response
       else
-        log :level => :error,
-            :message => "Failure: #{response.class}",
-            :response => response,
-            :notice => notice
+        log level: :error,
+            message: "Failure: #{response.class}",
+            response: response,
+            notice: notice
       end
 
       if response && response.respond_to?(:body)
@@ -77,8 +75,8 @@ module Airbrake
         error_id[1] if error_id
       end
     rescue => e
-      log :level => :error,
-        :message => "[Airbrake::Sender#send_to_airbrake] Cannot send notification. Error: #{e.class}" +
+      log level: :error,
+          message: "[Airbrake::Sender#send_to_airbrake] Cannot send notification. Error: #{e.class}" \
         " - #{e.message}\nBacktrace:\n#{e.backtrace.join("\n\t")}"
 
       nil
@@ -101,7 +99,7 @@ module Airbrake
     alias_method :secure?, :secure
     alias_method :use_system_ssl_cert_chain?, :use_system_ssl_cert_chain
 
-  private
+    private
 
     def prepare_notice(notice)
       if json_api_enabled?
@@ -149,25 +147,25 @@ module Airbrake
 
     def setup_http_connection
       http =
-        Net::HTTP::Proxy(proxy_host, proxy_port, proxy_user, proxy_pass).
-        new(url.host, url.port)
+        Net::HTTP::Proxy(proxy_host, proxy_port, proxy_user, proxy_pass)
+        .new(url.host, url.port)
 
       http.read_timeout = http_read_timeout
       http.open_timeout = http_open_timeout
 
       if secure?
-        http.use_ssl     = true
+        http.use_ssl = true
 
         http.ca_file      = Airbrake.configuration.ca_bundle_path
         http.verify_mode  = OpenSSL::SSL::VERIFY_PEER
       else
-        http.use_ssl     = false
+        http.use_ssl = false
       end
 
       http
     rescue => e
-      log :level => :error,
-          :message => "[Airbrake::Sender#setup_http_connection] Failure initializing the HTTP connection.\n" +
+      log level: :error,
+          message: "[Airbrake::Sender#setup_http_connection] Failure initializing the HTTP connection.\n" \
                       "Error: #{e.class} - #{e.message}\nBacktrace:\n#{e.backtrace.join("\n\t")}"
       raise e
     end

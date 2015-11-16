@@ -1,8 +1,8 @@
-require File.expand_path '../helper', __FILE__
+require File.expand_path "../helper", __FILE__
 
 class LoggerTest < Test::Unit::TestCase
   def stub_http(response, body = nil)
-    response.stubs(:body => body) if body
+    response.stubs(body: body) if body
     @http = stub(:post => response,
                  :read_timeout= => nil,
                  :open_timeout= => nil,
@@ -11,7 +11,7 @@ class LoggerTest < Test::Unit::TestCase
   end
 
   def send_notice
-    Airbrake.sender.send_to_airbrake({'foo' => "bar"})
+    Airbrake.sender.send_to_airbrake({ "foo" => "bar" })
   end
 
   def stub_verbose_log
@@ -55,7 +55,7 @@ class LoggerTest < Test::Unit::TestCase
   should "print environment info and response on a success with a body" do
     reset_config
     stub_verbose_log
-    stub_http(Net::HTTPSuccess, 'test')
+    stub_http(Net::HTTPSuccess, "test")
     send_notice
     assert_logged(/Environment Info:/)
     assert_logged(/Response from Airbrake:/)
@@ -64,7 +64,7 @@ class LoggerTest < Test::Unit::TestCase
   should "print environment info and response on a failure with a body" do
     reset_config
     stub_verbose_log
-    stub_http(Net::HTTPError, 'test')
+    stub_http(Net::HTTPError, "test")
     send_notice
     assert_logged(/Environment Info:/)
     assert_logged(/Response from Airbrake:/)

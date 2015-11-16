@@ -1,7 +1,6 @@
-require File.expand_path '../helper', __FILE__
+require File.expand_path "../helper", __FILE__
 
 class ConfigurationTest < Test::Unit::TestCase
-
   include DefinesConstants
 
   should "provide default values" do
@@ -13,10 +12,10 @@ class ConfigurationTest < Test::Unit::TestCase
     assert_config_default :environment_name,    nil
     assert_config_default :logger,              nil
     assert_config_default :notifier_version,    Airbrake::VERSION
-    assert_config_default :notifier_name,       'Airbrake Notifier'
-    assert_config_default :notifier_url,        'https://github.com/airbrake/airbrake'
+    assert_config_default :notifier_name,       "Airbrake Notifier"
+    assert_config_default :notifier_url,        "https://github.com/airbrake/airbrake"
     assert_config_default :secure,              false
-    assert_config_default :host,                'api.airbrake.io'
+    assert_config_default :host,                "api.airbrake.io"
     assert_config_default :http_open_timeout,   2
     assert_config_default :http_read_timeout,   5
     assert_config_default :ignore_by_filters,   []
@@ -31,7 +30,7 @@ class ConfigurationTest < Test::Unit::TestCase
     assert_config_default :ignore,
                           Airbrake::Configuration::IGNORE_DEFAULT
     assert_config_default :development_lookup, true
-    assert_config_default :framework, 'Standalone'
+    assert_config_default :framework, "Standalone"
     assert_config_default :async, nil
     assert_config_default :project_id, nil
   end
@@ -49,7 +48,7 @@ class ConfigurationTest < Test::Unit::TestCase
 
   should "set provided-callable for async {}" do
     config = Airbrake::Configuration.new
-    config.async {|notice| :ok}
+    config.async { |_notice| :ok }
     assert config.async.respond_to?(:call)
     assert_equal :ok, config.async.call
   end
@@ -58,14 +57,14 @@ class ConfigurationTest < Test::Unit::TestCase
     config = Airbrake::Configuration.new
     config.secure = true
     assert_equal 443, config.port
-    assert_equal 'https', config.protocol
+    assert_equal "https", config.protocol
   end
 
   should "provide default values for insecure connections" do
     config = Airbrake::Configuration.new
     config.secure = false
     assert_equal 80, config.port
-    assert_equal 'http', config.protocol
+    assert_equal "http", config.protocol
   end
 
   should "not cache inferred ports" do
@@ -118,7 +117,7 @@ class ConfigurationTest < Test::Unit::TestCase
   should "be mergable" do
     config = Airbrake::Configuration.new
     hash = config.to_hash
-    assert_equal hash.merge(:key => 'value'), config.merge(:key => 'value')
+    assert_equal hash.merge(key: "value"), config.merge(key: "value")
   end
 
   should "allow param filters to be appended" do
@@ -152,7 +151,7 @@ class ConfigurationTest < Test::Unit::TestCase
   should "allow ignored exceptions to be appended" do
     config = Airbrake::Configuration.new
     original_filters = config.ignore.dup
-    new_filter = 'hello'
+    new_filter = "hello"
     config.ignore << new_filter
     assert_same_elements original_filters + [new_filter], config.ignore
   end
@@ -164,7 +163,7 @@ class ConfigurationTest < Test::Unit::TestCase
   should "allow ignored rake exceptions to be appended" do
     config = Airbrake::Configuration.new
     original_filters = config.ignore_rake.dup
-    new_filter = 'hello'
+    new_filter = "hello"
     config.ignore_rake << new_filter
     assert_same_elements original_filters + [new_filter], config.ignore_rake
   end
@@ -198,7 +197,7 @@ class ConfigurationTest < Test::Unit::TestCase
     end
 
     should "be false with a blank api_key" do
-      @config.api_key = ''
+      @config.api_key = ""
       assert !@config.configured?
     end
   end
@@ -206,14 +205,14 @@ class ConfigurationTest < Test::Unit::TestCase
   should "be public in a public environment" do
     config = Airbrake::Configuration.new
     config.development_environments = %w(development)
-    config.environment_name = 'production'
+    config.environment_name = "production"
     assert config.public?
   end
 
   should "not be public in a development environment" do
     config = Airbrake::Configuration.new
     config.development_environments = %w(staging)
-    config.environment_name = 'staging'
+    config.environment_name = "staging"
     assert !config.public?
   end
 
@@ -228,12 +227,12 @@ class ConfigurationTest < Test::Unit::TestCase
     assert_equal "CUSTOM LOGGER", config.logger
   end
 
-  should 'give a new instance if non defined' do
+  should "give a new instance if non defined" do
     Airbrake.configuration = nil
     assert_kind_of Airbrake::Configuration, Airbrake.configuration
   end
 
-  should 'reject invalid user attributes' do
+  should "reject invalid user attributes" do
     silence_warnings
     config = Airbrake::Configuration.new
     config.user_attributes = %w(id foo)
@@ -254,7 +253,7 @@ class ConfigurationTest < Test::Unit::TestCase
     assert_equal default_value, config.send(option)
   end
 
-  def assert_config_overridable(option, value = 'a value')
+  def assert_config_overridable(option, value = "a value")
     config = Airbrake::Configuration.new
     config.send(:"#{option}=", value)
     assert_equal value, config.send(option)
@@ -264,7 +263,7 @@ class ConfigurationTest < Test::Unit::TestCase
     config = Airbrake::Configuration.new
     original_values = config.send(option).dup
     block ||= lambda do |conf|
-      new_value = 'hello'
+      new_value = "hello"
       conf.send(option) << new_value
       new_value
     end
@@ -274,7 +273,7 @@ class ConfigurationTest < Test::Unit::TestCase
 
   def assert_replaces(option, setter)
     config = Airbrake::Configuration.new
-    new_value = 'hello'
+    new_value = "hello"
     config.send(setter, [new_value])
     assert_equal [new_value], config.send(option)
     config.send(setter, new_value)

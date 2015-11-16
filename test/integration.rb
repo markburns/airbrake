@@ -1,10 +1,10 @@
-require File.expand_path '../helper', __FILE__
+require File.expand_path "../helper", __FILE__
 
 silence_warnings do
-  require 'action_controller'
-  require 'action_dispatch'
-  require 'active_support/dependencies'
-  require 'active_support/core_ext/kernel/reporting'
+  require "action_controller"
+  require "action_dispatch"
+  require "active_support/dependencies"
+  require "active_support/core_ext/kernel/reporting"
 
   require "erb"
   require "action_view"

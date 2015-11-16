@@ -1,9 +1,9 @@
 # A test harness for RakeHandler
 #
-require 'rake'
-require 'rubygems'
-require 'airbrake'
-require 'airbrake/rake_handler'
+require "rake"
+require "rubygems"
+require "airbrake"
+require "airbrake/rake_handler"
 
 class IgnoredException < StandardError; end
 
@@ -15,14 +15,14 @@ end
 task :airbrake do
   Airbrake.configuration.rescue_rake_exceptions = true
   stub_tty_output(true)
-  raise_exception 
+  raise_exception
 end
 
 # Should not catch exception
 task :airbrake_disabled do
   Airbrake.configuration.rescue_rake_exceptions = false
   stub_tty_output(true)
-  raise_exception 
+  raise_exception
 end
 
 # Should ignore the exception
@@ -35,15 +35,15 @@ end
 # Should not catch exception as tty_output is true
 task :airbrake_autodetect_from_terminal do
   Airbrake.configuration.rescue_rake_exceptions = nil
-  stub_tty_output(true) 
-  raise_exception 
+  stub_tty_output(true)
+  raise_exception
 end
 
 # Should catch exception as tty_output is false
 task :airbrake_autodetect_not_from_terminal do
   Airbrake.configuration.rescue_rake_exceptions = nil
-  stub_tty_output(false) 
-  raise_exception 
+  stub_tty_output(false)
+  raise_exception
 end
 
 task :airbrake_not_yet_configured do
@@ -73,5 +73,5 @@ def stub_tty_output(value)
 end
 
 def raise_exception(exception_class = StandardError)
-  raise exception_class.new('TEST')
+  fail exception_class.new("TEST")
 end

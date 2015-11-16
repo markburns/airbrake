@@ -1,7 +1,7 @@
-require 'airbrake'
-require 'airbrake/rails/controller_methods'
-require 'airbrake/rails/action_controller_catcher'
-require 'airbrake/rails/error_lookup'
+require "airbrake"
+require "airbrake/rails/controller_methods"
+require "airbrake/rails/action_controller_catcher"
+require "airbrake/rails/error_lookup"
 
 module Airbrake
   module Rails
@@ -20,14 +20,14 @@ module Airbrake
 
       if defined?(::Rails.configuration) && ::Rails.configuration.respond_to?(:middleware)
         if defined?(::ActionController::Failsafe)
-          ::Rails.configuration.middleware.insert_after 'ActionController::Failsafe',
+          ::Rails.configuration.middleware.insert_after "ActionController::Failsafe",
                                                         Airbrake::Rack
         end
         if defined?(::Rack::Lock)
-          ::Rails.configuration.middleware.insert_after 'Rack::Lock',
+          ::Rails.configuration.middleware.insert_after "Rack::Lock",
                                                         Airbrake::UserInformer
         else
-          ::Rails.configuration.middleware.insert_before 'Rack::Runtime',
+          ::Rails.configuration.middleware.insert_before "Rack::Runtime",
                                                          Airbrake::UserInformer
         end
       end

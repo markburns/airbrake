@@ -1,5 +1,5 @@
-require 'airbrake'
-require File.join(File.dirname(__FILE__), 'shared_tasks')
+require "airbrake"
+require File.join(File.dirname(__FILE__), "shared_tasks")
 
 def stub_rake_exception_handling!
   # Override error handling in Rake so we don't clutter STDERR
@@ -28,8 +28,7 @@ end
 
 namespace :airbrake do
   desc "Verify your gem installation by sending a test exception to the airbrake service"
-  task :test => [:environment] do
-
+  task test: [:environment] do
     stub_rake_exception_handling!
 
     Rails.logger = defined?(ActiveSupport::TaggedLogging) ?
@@ -56,10 +55,14 @@ namespace :airbrake do
 
     # Override Rails exception middleware, so we stop cluttering STDOUT
     # with stack trace from Rails
-    class ActionDispatch::DebugExceptions; def call(env); @app.call(env); end; end
-    class ActionDispatch::ShowExceptions; def call(env); @app.call(env); end; end
+    class ActionDispatch::DebugExceptions; def call(env)
+                                             @app.call(env)
+                                           end; end
+    class ActionDispatch::ShowExceptions; def call(env)
+                                            @app.call(env)
+                                          end; end
 
-    require './app/controllers/application_controller'
+    require "./app/controllers/application_controller"
 
     class AirbrakeTestingException < RuntimeError; end
 
@@ -83,13 +86,13 @@ namespace :airbrake do
       exit
     end
 
-    puts 'Setting up the Controller.'
+    puts "Setting up the Controller."
     class ApplicationController
       # This is to bypass any filters that may prevent access to the action.
       prepend_before_filter :test_airbrake
       def test_airbrake
         puts "Raising '#{exception_class.name}' to simulate application failure."
-        raise exception_class.new, "\nTesting airbrake via \"rake airbrake:test\"."\
+        fail exception_class.new, "\nTesting airbrake via \"rake airbrake:test\"."\
                                    " If you can see this, it works."
       end
 
@@ -97,7 +100,7 @@ namespace :airbrake do
       def verify; end
 
       def exception_class
-        exception_name = ENV['EXCEPTION'] || "AirbrakeTestingException"
+        exception_name = ENV["EXCEPTION"] || "AirbrakeTestingException"
         Object.const_get(exception_name)
       rescue
         Object.const_set(exception_name, Class.new(Exception))
@@ -105,16 +108,16 @@ namespace :airbrake do
     end
 
     Rails.application.routes.draw do
-      get 'verify' => 'application#verify', :as => 'verify', :via => :get
+      get "verify" => 'application#verify', :as => "verify", :via => :get
     end
 
-    puts 'Processing request.'
+    puts "Processing request."
 
     config = Rails.application.config
-    protocol = (config.respond_to?(:force_ssl) && config.force_ssl) ? 'https' : 'http'
+    protocol = (config.respond_to?(:force_ssl) && config.force_ssl) ? "https" : "http"
 
     env = Rack::MockRequest.env_for("#{protocol}://www.example.com/verify")
-    env['REMOTE_ADDR'] = '127.0.0.1'
+    env["REMOTE_ADDR"] = "127.0.0.1"
 
     Rails.application.call(env)
 
@@ -123,4 +126,3 @@ namespace :airbrake do
     unstub_rake_exception_handling!
   end
 end
-

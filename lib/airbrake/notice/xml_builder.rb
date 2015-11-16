@@ -1,5 +1,5 @@
-require 'builder'
-require 'airbrake/notice/base_builder'
+require "builder"
+require "airbrake/notice/base_builder"
 
 module Airbrake
   class Notice
@@ -7,22 +7,22 @@ module Airbrake
       def render
         builder = Builder::XmlMarkup.new
         builder.instruct!
-        xml = builder.notice(:version => Airbrake::API_VERSION) do |notice|
+        xml = builder.notice(version: Airbrake::API_VERSION) do |notice|
           notice.tag!("api-key", api_key)
           notice.notifier do |notifier|
             notifier.name(notifier_name)
             notifier.version(notifier_version)
             notifier.url(notifier_url)
           end
-          notice.tag!('error') do |error|
-            error.tag!('class', error_class)
+          notice.tag!("error") do |error|
+            error.tag!("class", error_class)
             error.message(error_message)
             error.backtrace do |backtrace|
               self.backtrace.lines.each do |line|
                 backtrace.line(
-                  :number      => line.number,
-                  :file        => line.file,
-                  :method      => line.method_name
+                  number: line.number,
+                  file: line.file,
+                  method: line.method_name
                 )
               end
             end
@@ -62,9 +62,7 @@ module Airbrake
               end
             end
           end
-          if framework =~ /\S/
-            notice.tag!("framework", framework)
-          end
+          notice.tag!("framework", framework) if framework =~ /\S/
         end
         xml.to_s
       end
@@ -74,9 +72,9 @@ module Airbrake
       def xml_vars_for(builder, hash)
         hash.each do |key, value|
           if value.respond_to?(:to_hash)
-            builder.var(:key => key){|b| xml_vars_for(b, value.to_hash) }
+            builder.var(key: key) { |b| xml_vars_for(b, value.to_hash) }
           else
-            builder.var(value.to_s, :key => key)
+            builder.var(value.to_s, key: key)
           end
         end
       end

@@ -12,7 +12,7 @@ module Airbrake
         begin
           response = @app.call(env)
         rescue Exception => exception
-          env['airbrake.error_id'] = notify_airbrake(env, exception)
+          env["airbrake.error_id"] = notify_airbrake(env, exception)
           raise exception
         end
 
@@ -47,16 +47,16 @@ module Airbrake
         if controller(env).respond_to?(:airbrake_request_data)
           controller(env).airbrake_request_data
         else
-          {:rack_env => env}
+          { rack_env: env }
         end
       end
 
       def ignored_user_agent?(env)
-        true if Airbrake.
-          configuration.
-          ignore_user_agent.
-          flatten.
-          any? { |ua| ua === env['HTTP_USER_AGENT'] }
+        true if Airbrake
+                .configuration
+                .ignore_user_agent
+                .flatten
+                .any? { |ua| ua === env["HTTP_USER_AGENT"] }
       end
     end
   end

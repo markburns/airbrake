@@ -1,5 +1,5 @@
 Rails::Generator::Commands::Create.class_eval do
-  def rake(cmd, opts = {})
+  def rake(cmd, _opts = {})
     logger.rake "rake #{cmd}"
     unless system("rake #{cmd}")
       logger.rake "#{cmd} failed. Rolling back"
@@ -18,7 +18,7 @@ Rails::Generator::Commands::Destroy.class_eval do
 end
 
 Rails::Generator::Commands::List.class_eval do
-  def rake(cmd, opts = {})
+  def rake(cmd, _opts = {})
     logger.rake "rake #{cmd}"
   end
 end

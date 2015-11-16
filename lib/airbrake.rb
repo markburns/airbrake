@@ -8,30 +8,30 @@ begin
 rescue LoadError
 end
 
-require 'net/http'
-require 'net/https'
-require 'rubygems'
-require 'logger'
+require "net/http"
+require "net/https"
+require "rubygems"
+require "logger"
 
-require 'airbrake/version'
-require 'airbrake/jobs/send_job'
-require 'airbrake/utils/rack_filters'
-require 'airbrake/utils/params_cleaner'
-require 'airbrake/configuration'
-require 'airbrake/notice'
-require 'airbrake/sender'
-require 'airbrake/response'
-require 'airbrake/backtrace'
-require 'airbrake/rack'
-require 'airbrake/sinatra'
-require 'airbrake/user_informer'
+require "airbrake/version"
+require "airbrake/jobs/send_job"
+require "airbrake/utils/rack_filters"
+require "airbrake/utils/params_cleaner"
+require "airbrake/configuration"
+require "airbrake/notice"
+require "airbrake/sender"
+require "airbrake/response"
+require "airbrake/backtrace"
+require "airbrake/rack"
+require "airbrake/sinatra"
+require "airbrake/user_informer"
 
 begin
-  require 'airbrake/sidekiq'
+  require "airbrake/sidekiq"
 rescue LoadError
 end
 
-require 'airbrake/railtie' if defined?(Rails::Railtie)
+require "airbrake/railtie" if defined?(Rails::Railtie)
 
 module Airbrake
   API_VERSION = "2.4"
@@ -87,7 +87,7 @@ module Airbrake
 
     # Look for the Rails logger currently defined
     def logger
-      self.configuration.logger ||
+      configuration.logger ||
         Logger.new(nil)
     end
 
@@ -107,7 +107,7 @@ module Airbrake
                     end
 
       report_ready unless silent
-      self.sender
+      sender
     end
 
     # The configuration object.
@@ -143,10 +143,18 @@ module Airbrake
       notice = build_notice_for(exception, options)
 
       result = {}
-      result[:action]           = notice.action      rescue nil
-      result[:component]        = notice.component   rescue nil
+      result[:action]           = begin
+                                    notice.action
+                                  rescue
+                                    nil
+                                  end
+      result[:component]        = begin
+                                    notice.component
+                                  rescue
+                                    nil
+                                  end
       result[:error_class]      = notice.error_class if notice.error_class
-      result[:environment_name] = 'production'
+      result[:environment_name] = "production"
 
       unless notice.backtrace.lines.empty?
         result[:file]        = notice.backtrace.lines.first.file
@@ -174,7 +182,7 @@ module Airbrake
     def build_notice_for(exception, opts = {})
       exception_classes = [exception.class.to_s]
       exception = unwrap_exception(exception)
-      opts = opts.merge(:exception => exception) if exception.is_a?(Exception)
+      opts = opts.merge(exception: exception) if exception.is_a?(Exception)
       opts = opts.merge(exception.to_hash) if exception.respond_to?(:to_hash)
       opts = opts.merge(exception_classes: exception_classes)
       Notice.new(configuration.merge(opts))

@@ -1,18 +1,17 @@
 module Airbrake
   module Rails
     module ControllerMethods
-
       SLASH = "/"
 
       def airbrake_request_data
         {
-          :parameters       => airbrake_filter_if_filtering(to_hash(params)),
-          :session_data     => airbrake_filter_if_filtering(airbrake_session_data),
-          :controller       => params[:controller],
-          :action           => params[:action],
-          :url              => airbrake_request_url,
-          :cgi_data         => airbrake_filter_if_filtering(request.env),
-          :user             => airbrake_current_user
+          parameters: airbrake_filter_if_filtering(to_hash(params)),
+          session_data: airbrake_filter_if_filtering(airbrake_session_data),
+          controller: params[:controller],
+          action: params[:action],
+          url: airbrake_request_url,
+          cgi_data: airbrake_filter_if_filtering(request.env),
+          user: airbrake_current_user
         }
       end
 
@@ -48,9 +47,8 @@ module Airbrake
         Airbrake.configuration.ignore_user_agent.flatten.any? { |ua| ua === user_agent }
       end
 
-
       def airbrake_filter_if_filtering(hash)
-        return hash if ! hash.is_a?(Hash)
+        return hash unless hash.is_a?(Hash)
 
         if respond_to?(:filter_parameters) # Rails 2
           filter_parameters(hash)
@@ -89,20 +87,16 @@ module Airbrake
             session.data
           end
         else
-          {:session => 'no session found'}
+          { session: "no session found" }
         end
       end
 
       def airbrake_request_url
         url = "#{request.protocol}#{request.host}"
 
-        unless [80, 443].include?(request.port)
-          url << ":#{request.port}"
-        end
+        url << ":#{request.port}" unless [80, 443].include?(request.port)
 
-        unless request.fullpath[0] == SLASH
-          url << SLASH
-        end
+        url << SLASH unless request.fullpath[0] == SLASH
 
         url << request.fullpath
       end
@@ -129,9 +123,7 @@ module Airbrake
           current_user
         elsif defined?(current_member)
           current_member
-        else
-          nil
-        end
+                end
       rescue
         nil
       ensure
