@@ -14,6 +14,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency("builder")
   s.add_runtime_dependency("multi_json")
 
+  s.add_development_dependency("rubocop")
   s.add_development_dependency("bourne",        "~> 1.4.0")
   s.add_development_dependency("cucumber-rails","~> 1.1.1")
   s.add_development_dependency("fakeweb",       "~> 1.3.0")
