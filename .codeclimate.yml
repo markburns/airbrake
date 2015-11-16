@@ -6,4 +6,8 @@ exclude_paths:
   - lib/airbrake/notice/json_builder.rb
   - features/*
   - .codeclimate.yml
+  - .rubocop-enabled.yml
+  - .rubocop-disabled.yml
+  - .rubocop.yml
+
 

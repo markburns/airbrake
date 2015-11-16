@@ -7,7 +7,9 @@ require 'coveralls/rake/task'
 require 'rubygems/package_task'
 require 'cucumber/rake/task'
 require './lib/airbrake/version'
+require "rubocop/rake_task"
 
+RuboCop::RakeTask.new
 Coveralls::RakeTask.new
 
 appraisal_environments = %w(rails-4.0 rails-3.2 rails-3.1 rails-3.0 rake sinatra rack)
